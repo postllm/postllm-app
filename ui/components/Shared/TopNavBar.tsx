@@ -35,7 +35,6 @@ export const TopNavBar = () => {
 			/>
 			<div className="flex h-12 flex-row justify-center items-center w-full">
 				<h1 className="text-white justify-center items-center flex gap-3 ml-2">
-					<img src="../../logo.png" className="h-8 w-8" />
 					<span className="font-bold">PostLLM</span>
 				</h1>
 				<div className="flex ml-auto mr-4 gap-4">
