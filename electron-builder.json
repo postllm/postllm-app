@@ -30,6 +30,6 @@
 		"provider": "github",
 		"repo": "postllm/postllm-app",
 		"owner": "postllm",
-		"releaseType": "draft"
+		"releaseType": "release"
 	}
 }
