@@ -1,5 +1,5 @@
 import { ChevronDownIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { GridSideArea } from "../components/Grid/GridSideArea";
 import { GridTable } from "../components/Grid/GridTable";
@@ -16,6 +16,13 @@ export const GridPage = () => {
 	const { data: grid } = trpc.grids.get.useQuery({ id: gridId as string });
 	const { mutateAsync: execute } = trpc.grids.execute.useMutation();
 
+	useEffect(() => {
+		if (!grid) return;
+		if (selectedHistory) return;
+		setSelectedHistory(grid?.history[0]?._id ?? null);
+	}, [grid]);
+
+
 	const onExecute = useCallback(async () => {
 		const historyId = await execute({ id: gridId as string });
 		utils.grids.get.invalidate({ id: gridId as string });		
@@ -31,7 +38,7 @@ export const GridPage = () => {
 							<div className="text-white text-base font-bold ml-8">{grid?.name}</div>
 							<div className="ml-auto mr-4 flex gap-4">
 								<Dropdown 
-									label="History" 
+									label={`History (${timeAgo(grid?.history.find((h) => h._id === selectedHistory)?.createdAt ?? 0)})`} 
 									rightIcon={<ChevronDownIcon />} 
 									options={grid?.history.reverse().map((h) => ({key: h._id, value: timeAgo(h.createdAt)})) ?? []} 
 									onChange={(id) => setSelectedHistory(id)}

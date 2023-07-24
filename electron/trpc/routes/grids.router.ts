@@ -62,6 +62,23 @@ export const gridsRouter = router({
             const data = await grid.getById(input.id);
             if (!data) return null;
             await grid.remove(data);
-
         }),
+    addGridResult: procedure
+        .input(z.object({
+            gridId: z.string(),
+            historyId: z.string(),
+            versionId: z.string(),
+            setId: z.string(),
+            result: z.string(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            const data = await grid.getById(input.gridId);
+            if (!data) return null;
+
+            const history = data.history.find((h) => h._id === input.historyId);
+            if (!history) return null;
+
+            history.results[`${input.versionId}_${input.setId}`] = input.result;
+            await grid.update(data);
+        })
 });
