@@ -1,25 +1,18 @@
-# ⚛ Electron - React - TailwindCSS Template With Router
+# PostLLM
+## Overview
 
-A very simple and functional template for you to use Electron, React and TailwindCSS together.
+PostLLM is a powerful desktop application designed for creating and managing prompts. It offers features such as saving and categorizing prompts, real-time prompt co-editing, and system prompt templates. All your data is stored locally and nowhere else.
 
-# 🎀 Features
+## Features
+- Saved and categorized prompts
+- System prompt templates
+- Collaboration
+- BYO API keys
+- BYO models
+- Compare prompts
 
--   Use React for creating interfaces
--   Use `react-router-dom` for routing
--   Use TailwindCSS for styling
--   Basic functions are ready to use such as creating tray icon, creating notifications etc.
+## Feedback
 
-# 🤓 Insatllation
+Feel free to send us feedback on [twitter](https://twitter.com/gmarcilhacy) or [file an issue](https://github.com/postllm/PostLLM-app/issues/new). Feature requests are always welcome.
 
--   Clone repo
--   Run `npm install` or `yarn`
--   Run `npm run dev` or `yarn dev` to start development server
--   Run `npm run build` or `yarn build` to create executable
-
-# 🧦 Contributing
-
-Feel free to use GitHub's features.
-
-# 📄 Copyrights
-
-Copyrights for `public/favicon.ico`, `public/icon.ico` and `public/icon.png` are owned by [Brawlhalla, Blue Mammoth Games](https://www.brawlhalla.com/)
+**Enjoy using PostLLM!**
