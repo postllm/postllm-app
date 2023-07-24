@@ -7,7 +7,7 @@ import {
 
 export function update(win: Electron.BrowserWindow) {
 	// When set to false, the update download will be triggered through the API
-	autoUpdater.autoDownload = false;
+	autoUpdater.autoDownload = true;
 	autoUpdater.disableWebInstaller = false;
 	autoUpdater.allowDowngrade = false;
 

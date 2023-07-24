@@ -23,7 +23,7 @@ module.exports = __toCommonJS(stdin_exports);
 var import_electron = require("electron");
 var import_electron_updater = require("electron-updater");
 function update(win) {
-  import_electron_updater.autoUpdater.autoDownload = false;
+  import_electron_updater.autoUpdater.autoDownload = true;
   import_electron_updater.autoUpdater.disableWebInstaller = false;
   import_electron_updater.autoUpdater.allowDowngrade = false;
   import_electron_updater.autoUpdater.on("checking-for-update", function() {
