@@ -1,6 +1,7 @@
 {
+	"productName": "PostLLM",
 	"appId": "com.postllm.app",
-	"asar": true,
+	"asar": false,
 	"directories": {
 		"output": "release/${version}"
 	},
@@ -26,7 +27,8 @@
 	},
 	"publish": {
 		"provider": "github",
-		"channel": "latest",
-		"url": "https://github.com/electron-vite/electron-vite-react/releases/download/v0.9.9/"
+		"repo": "postllm/postllm-app",
+		"owner": "postllm",
+		"releaseType": "draft"
 	}
 }

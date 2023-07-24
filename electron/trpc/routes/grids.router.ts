@@ -56,4 +56,12 @@ export const gridsRouter = router({
             const data = await grid.update(input);
             return data;
         }),
+    delete: procedure
+        .input(inputSchema)
+        .mutation(async ({ input, ctx }) => {
+            const data = await grid.getById(input.id);
+            if (!data) return null;
+            await grid.remove(data);
+
+        }),
 });

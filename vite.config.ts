@@ -13,6 +13,9 @@ export default defineConfig(({ command }) => {
 	rmSync("dist-electron", { recursive: true, force: true });
 
 	return {
+		build: {
+			minify: true
+		},
 		resolve: {
 			alias: {
 				"@": path.join(__dirname, "src"),

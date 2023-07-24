@@ -37,18 +37,19 @@ export const DashboardPage: FC = () => {
 	});
 	const {mutateAsync: deletePrompt} = trpc.templates.delete.useMutation();
 	const {mutateAsync: clonePrompt} = trpc.templates.clone.useMutation();
-
+	const {mutateAsync: deleteGrid} = trpc.grids.delete.useMutation();
 	
-	const onHandleOption = useCallback(async (action: string, id: string) => {
+	const onHandleOption = useCallback(async (type:string, action: string, id: string) => {
 		if (action === 'delete') {
-			await deletePrompt({ id });
-			utils.templates.all.invalidate();
+			if (type === 'Template') await deletePrompt({ id });
+			if (type === 'Grid') await deleteGrid({ id });
 		}
 		
 		if (action === 'clone') {
-			await clonePrompt({ id });
-			utils.templates.all.invalidate();
+			if (type === 'Template') await clonePrompt({ id });
 		}
+		utils.templates.all.invalidate();
+		utils.grids.all.invalidate();
 	}, [clonePrompt, deletePrompt, utils]);
 	
 	const entities = [...(templates ?? []), ...(grids ?? [])].filter((e) => {
@@ -133,7 +134,7 @@ export const DashboardPage: FC = () => {
 						icon={entity.type === 'Grid' ? <ViewGridIcon className="mr-2 mt-[5px] text-rose-400" /> : <BookmarkFilledIcon className="mr-2 mt-[5px] text-emerald-400" />} 
 						dropdown={<Dropdown
 							label=""
-							onChange={(key: string) => onHandleOption(key, entity._id)}
+							onChange={(key: string) => onHandleOption(entity.type, key, entity._id)}
 							options={[{key: 'clone', value: 'Duplicate'}, {key: 'delete', value: 'Delete'}]}
 							rightIcon={<DotsVerticalIcon className="w-4 h-4 text-zinc-400" />}
 						/>}
@@ -167,7 +168,7 @@ function NavLink({ onClick, href, active, children, className }: TNavLinkProps) 
 			}}
 			aria-current={active ? "page" : undefined}
 			className={twMerge(
-				"flex justify-between gap-2 pl-4 py-2 pr-3 text-sm transition",
+				"w-full flex justify-between gap-2 pl-4 py-2 pr-3 text-sm transition",
 				"dark:hover:border-l-emerald-500 dark:border dark:border-transparent",
 				active
 					? "text-zinc-900 dark:text-white dark:border-l-emerald-500 dark:bg-white/2.5"
