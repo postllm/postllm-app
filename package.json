@@ -45,6 +45,7 @@
 		"auto-launch": "^5.0.5",
 		"axios": "^1.4.0",
 		"dotenv": "^16.3.1",
+		"dotenv-cli": "^7.2.1",
 		"electron-is-dev": "^2.0.0",
 		"electron-reloader": "^1.2.3",
 		"electron-trpc": "^0.5.2",
@@ -69,12 +70,12 @@
 	"main": "dist-electron/main/index.js",
 	"scripts": {
 		"prebuild": "rimraf build && rimraf dist",
-		"electron:build": "electron-builder build --win --publish never",
-		"electron:deploy": "electron-builder build --win --publish always",
 		"dev": "vite",
 		"deploy": "npm run react:build && npm run electron:deploy",
 		"update": "taze latest -w",
-		"build": "vite build && electron-builder",
+		"loadenv": "node -r dotenv/config .env",
+		"build": "dotenv -- vite build && electron-builder --publish always",
+		"build-draft": "dotenv -- vite build && electron-builder",
 		"preview": "vite preview"
 	},
 	"eslintConfig": {

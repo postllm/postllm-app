@@ -26,6 +26,7 @@ export const VariablesBuilder = () => {
 	const { mutate: saveTemplate } = trpc.templates.update.useMutation({
 		onSuccess: () => {
 			utils.templates.get.invalidate({ id: templateId });
+			utils.templates.getVersion.invalidate({ id: templateId, versionId });
 		},
 	});
 
@@ -50,7 +51,7 @@ export const VariablesBuilder = () => {
 			});
 			utils.templates.get.invalidate({ id: templateId });
 		},
-		[saveTemplate, template],
+		[saveTemplate, version, template?.modifiedAt],
 	);
 
 	const onLLMChange = useCallback(
@@ -66,7 +67,7 @@ export const VariablesBuilder = () => {
 			});
 			utils.templates.get.invalidate({ id: templateId });
 		},
-		[saveTemplate, template],
+		[saveTemplate, version, template?.modifiedAt],
 	);
 
 	return (
@@ -105,6 +106,7 @@ export const VariablesBuilder = () => {
 						)}
 						{template?.settings && (
 							<LLMParameters
+								key={template?.modifiedAt}
 								onChange={onLLMChange}
 								modelName={template.settings.modelName}
 								temperature={template.settings.temperature}

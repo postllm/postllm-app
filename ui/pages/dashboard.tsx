@@ -110,7 +110,7 @@ export const DashboardPage: FC = () => {
 									active={filter === 'Grid'}
 									className="pl-6"
 								>
-									<span className="flex"><ViewGridIcon className="mr-2 text-rose-400" /> Comparisons</span>
+									<span className="flex"><ViewGridIcon className="mr-2 text-rose-400" /> Comparitors</span>
 								</NavLink>
 								<NavLink
 									onClick={() => setFilter('Chat')}
@@ -199,18 +199,18 @@ return <Link
 		"hover:cursor-pointer",
 	)}
 	>
-	<div className="relative rounded-2xl px-4 pb-4 pt-4 overflow-hidden w-full">
+	<div className="relative rounded-2xl px-4 pb-0 pt-4 overflow-hidden w-full">
 		<h3 className="mt-1 text-sm font-semibold leading-7 text-zinc-900 dark:text-white">
 			<span className="flex">{icon} {title}</span>
 		</h3>
 		<p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400 truncate">
 			{ description }
 		</p>
-		<div className="flex flex-row dark:text-zinc-400 text-xs absolute bottom-4 left-4 w-full">
+		<div className="flex flex-row dark:text-zinc-400 text-xs absolute bottom-1 w-full">
 			<div className="flex">
 				<ClockIcon className="w-4 h-4 mr-2" /><span>{timeAgo(time)}</span>
 			</div>
-			<div>
+			<div className="ml-auto mr-7 -mt-1">
 				{dropdown}
 			</div>
 		</div>

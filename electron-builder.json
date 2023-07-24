@@ -1,7 +1,7 @@
 {
 	"productName": "PostLLM",
 	"appId": "com.postllm.app",
-	"asar": false,
+	"asar": true,
 	"directories": {
 		"output": "release/${version}",
 		"buildResources": "public"
@@ -28,7 +28,7 @@
 	},
 	"publish": {
 		"provider": "github",
-		"repo": "postllm/postllm-app",
+		"repo": "postllm-app",
 		"owner": "postllm",
 		"releaseType": "release"
 	}

@@ -84,7 +84,9 @@ export const TemplateBuilder = () => {
 				});
 				
 				await saveTemplate(copy);
-			}, 100);
+				utils.templates.get.invalidate({ id: templateId });
+				utils.templates.getVersion.invalidate({ id: templateId, versionId });
+			}, 250);
 
 		return () => clearTimeout(timer);
 		},
