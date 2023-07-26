@@ -6,13 +6,14 @@ import {
 	DotsVerticalIcon,
 	FileTextIcon,
 	PlusCircledIcon,
-	ViewGridIcon
+	ViewGridIcon,
 } from "@radix-ui/react-icons";
 import { FC, useCallback, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 import { Layout } from "../components/Layout";
 import { CreateCollectionModal } from "../components/Modals/CreateCollectionModal";
+import { WarningBanner } from "../components/Shared/Banner";
 import { Dropdown } from "../components/Shared/Dropdown";
 import { SectionTitle } from "../components/Shared/SectionTitle";
 import { timeAgo } from "../utils/timeAgo";
@@ -21,8 +22,11 @@ import { trpc } from "../utils/trpc";
 export const DashboardPage: FC = () => {
 	const { collectionId, workspaceId } = useParams();
 	const utils = trpc.useContext();
-	const [filter, setFilter] = useState<"Template" | "Grid" | "Chat" | null>();
+	const [filter, setFilter] = useState<
+		"Template" | "Grid" | "Chat" | "File" | null
+	>();
 	const [showNewCollection, setShowNewCollection] = useState(false);
+	const { data: config } = trpc.config.get.useQuery();
 	const { data: templates } = trpc.templates.all.useQuery({
 		collectionId: `${collectionId}`,
 	});
@@ -35,28 +39,31 @@ export const DashboardPage: FC = () => {
 	const { data: collection } = trpc.collections.get.useQuery({
 		id: `${collectionId}`,
 	});
-	const {mutateAsync: deletePrompt} = trpc.templates.delete.useMutation();
-	const {mutateAsync: clonePrompt} = trpc.templates.clone.useMutation();
-	const {mutateAsync: deleteGrid} = trpc.grids.delete.useMutation();
-	
-	const onHandleOption = useCallback(async (type:string, action: string, id: string) => {
-		if (action === 'delete') {
-			if (type === 'Template') await deletePrompt({ id });
-			if (type === 'Grid') await deleteGrid({ id });
-		}
-		
-		if (action === 'clone') {
-			if (type === 'Template') await clonePrompt({ id });
-		}
-		utils.templates.all.invalidate();
-		utils.grids.all.invalidate();
-	}, [clonePrompt, deletePrompt, utils]);
-	
+	const { mutateAsync: deletePrompt } = trpc.templates.delete.useMutation();
+	const { mutateAsync: clonePrompt } = trpc.templates.clone.useMutation();
+	const { mutateAsync: deleteGrid } = trpc.grids.delete.useMutation();
+
+	const onHandleOption = useCallback(
+		async (type: string, action: string, id: string) => {
+			if (action === "delete") {
+				if (type === "Template") await deletePrompt({ id });
+				if (type === "Grid") await deleteGrid({ id });
+			}
+
+			if (action === "clone") {
+				if (type === "Template") await clonePrompt({ id });
+			}
+			utils.templates.all.invalidate();
+			utils.grids.all.invalidate();
+		},
+		[clonePrompt, deletePrompt, utils],
+	);
+
 	const entities = [...(templates ?? []), ...(grids ?? [])].filter((e) => {
 		if (!filter) return true;
 		if (filter) return e.type === filter;
-	});	
-		
+	});
+
 	return (
 		<Layout>
 			<div className="">
@@ -73,7 +80,7 @@ export const DashboardPage: FC = () => {
 						/>
 						<div className="relative mt-3 pl-2">
 							<ul className="overflow-y-auto dark:border dark:border-transparent dark:border-l-white/5">
-							{collections?.map((col) => (
+								{collections?.map((col) => (
 									<NavLink
 										key={col._id}
 										href={`/workspaces/${workspaceId}/dashboard/${col._id}`}
@@ -95,51 +102,99 @@ export const DashboardPage: FC = () => {
 						/>
 						<div className="relative mt-3 pl-2">
 							<ul className="overflow-y-auto dark:border dark:border-transparent dark:border-l-white/5">
-								<NavLink onClick={() => setFilter(null)} active={!filter}>
+								<NavLink
+									onClick={() => setFilter(null)}
+									active={!filter}
+								>
 									All
 								</NavLink>
 								<NavLink
-									onClick={() => setFilter('Template')}
-									active={filter === 'Template'}
+									onClick={() => setFilter("Template")}
+									active={filter === "Template"}
 									className="pl-6"
 								>
-									<span className="flex"><BookmarkFilledIcon className="mr-2 text-emerald-400" /> Prompt Templates</span>
+									<span className="flex">
+										<BookmarkFilledIcon className="mr-2 text-emerald-400" />{" "}
+										Prompt Templates
+									</span>
 								</NavLink>
 								<NavLink
-									onClick={() => setFilter('Grid')}
-									active={filter === 'Grid'}
+									onClick={() => setFilter("Grid")}
+									active={filter === "Grid"}
 									className="pl-6"
 								>
-									<span className="flex"><ViewGridIcon className="mr-2 text-rose-400" /> Comparitors</span>
+									<span className="flex">
+										<ViewGridIcon className="mr-2 text-rose-400" />{" "}
+										Comparitors
+									</span>
 								</NavLink>
 								<NavLink
-									onClick={() => setFilter('Chat')}
-									active={filter === 'Chat'}
+									onClick={() => setFilter("Chat")}
+									active={filter === "Chat"}
 									className="pl-6"
 								>
-									<span className="flex"><ChatBubbleIcon className="mr-2 text-blue-400" /> Chats (Coming soon)</span>
+									<span className="flex">
+										<ChatBubbleIcon className="mr-2 text-blue-400" />{" "}
+										Chats (Coming soon)
+									</span>
+								</NavLink>
+								<NavLink
+									onClick={() => setFilter("File")}
+									active={filter === "File"}
+									className="pl-6"
+								>
+									<span className="flex">
+										<FileTextIcon className="mr-2 text-purple-400" />{" "}
+										Files (Coming soon)
+									</span>
 								</NavLink>
 							</ul>
 						</div>
 					</div>
 				</div>
 			</div>
-			<div className="pt-10 mx-4 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8 border-zinc-900/5  dark:border-white/5">
-				{entities?.map((entity) => (
-					<Card 
-						key={entity._id} 
-						title={entity.name}
-						href={`/workspaces/${workspaceId}/dashboard/${collectionId}/${entity.type.toLowerCase()}s/${entity._id}`}
-						time={entity.modifiedAt}
-						icon={entity.type === 'Grid' ? <ViewGridIcon className="mr-2 mt-[5px] text-rose-400" /> : <BookmarkFilledIcon className="mr-2 mt-[5px] text-emerald-400" />} 
-						dropdown={<Dropdown
-							label=""
-							onChange={(key: string) => onHandleOption(entity.type, key, entity._id)}
-							options={[{key: 'clone', value: 'Duplicate'}, {key: 'delete', value: 'Delete'}]}
-							rightIcon={<DotsVerticalIcon className="w-4 h-4 text-zinc-400" />}
-						/>}
-					/>
-				))}
+			<div className="pt-10 mx-4  border-zinc-900/5  dark:border-white/5">
+				{config && !config?.apiKeys?.openAIKey && (
+					<WarningBanner text="You're OpenAI API key is missing. Make sure to add it in your Preferences!" />
+				)}
+				<div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
+					{entities?.map((entity) => (
+						<Card
+							key={entity._id}
+							title={entity.name}
+							href={`/workspaces/${workspaceId}/dashboard/${collectionId}/${entity.type.toLowerCase()}s/${
+								entity._id
+							}`}
+							time={entity.modifiedAt}
+							icon={
+								entity.type === "Grid" ? (
+									<ViewGridIcon className="mr-2 mt-[5px] text-rose-400" />
+								) : (
+									<BookmarkFilledIcon className="mr-2 mt-[5px] text-emerald-400" />
+								)
+							}
+							dropdown={
+								<Dropdown
+									label=""
+									onChange={(key: string) =>
+										onHandleOption(
+											entity.type,
+											key,
+											entity._id,
+										)
+									}
+									options={[
+										{ key: "clone", value: "Duplicate" },
+										{ key: "delete", value: "Delete" },
+									]}
+									rightIcon={
+										<DotsVerticalIcon className="w-4 h-4 text-zinc-400" />
+									}
+								/>
+							}
+						/>
+					))}
+				</div>
 			</div>
 			{showNewCollection && (
 				<CreateCollectionModal open={showNewCollection} />
@@ -156,15 +211,20 @@ type TNavLinkProps = {
 	href?: string;
 };
 
-function NavLink({ onClick, href, active, children, className }: TNavLinkProps) {
+function NavLink({
+	onClick,
+	href,
+	active,
+	children,
+	className,
+}: TNavLinkProps) {
 	const navigate = useNavigate();
-	
+
 	return (
 		<button
 			onClick={() => {
 				onClick?.();
-				if (href)
-					navigate(href);
+				if (href) navigate(href);
 			}}
 			aria-current={active ? "page" : undefined}
 			className={twMerge(
@@ -188,32 +248,36 @@ type TCardProps = {
 	href: string;
 	description?: string;
 	time: number;
+};
+
+function Card({ icon, title, href, time, description, dropdown }: TCardProps) {
+	return (
+		<Link
+			to={href}
+			className={twMerge(
+				"group min-w-[200px] w-[200px] h-[150px] relative flex rounded-2xl bg-zinc-50 transition-shadow hover:shadow-md hover:shadow-zinc-900/5 dark:bg-white/2.5 dark:hover:shadow-black/5",
+				"dark:hover:border-emerald-500/50 dark:border dark:border-white/10 transition-all",
+				"hover:cursor-pointer",
+			)}
+		>
+			<div className="relative rounded-2xl px-4 pb-0 pt-4 overflow-hidden w-full">
+				<h3 className="mt-1 text-sm font-semibold leading-7 text-zinc-900 dark:text-white">
+					<span className="flex">
+						{icon} {title}
+					</span>
+				</h3>
+				<p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400 truncate">
+					{description}
+				</p>
+				<div className="flex flex-row dark:text-zinc-400 text-xs absolute bottom-1 w-full">
+					<div className="flex">
+						<ClockIcon className="w-4 h-4 mr-2" />
+						<span>{timeAgo(time)}</span>
+					</div>
+					<div className="ml-auto mr-7 -mt-1">{dropdown}</div>
+				</div>
+			</div>
+		</Link>
+	);
 }
 
-function Card({icon, title, href, time, description, dropdown}: TCardProps) {
-return <Link
-	to={href}
-	className={twMerge(
-		"group min-w-[200px] w-[200px] h-[150px] relative flex rounded-2xl bg-zinc-50 transition-shadow hover:shadow-md hover:shadow-zinc-900/5 dark:bg-white/2.5 dark:hover:shadow-black/5",
-		"dark:hover:border-emerald-500/50 dark:border dark:border-white/10 transition-all",
-		"hover:cursor-pointer",
-	)}
-	>
-	<div className="relative rounded-2xl px-4 pb-0 pt-4 overflow-hidden w-full">
-		<h3 className="mt-1 text-sm font-semibold leading-7 text-zinc-900 dark:text-white">
-			<span className="flex">{icon} {title}</span>
-		</h3>
-		<p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400 truncate">
-			{ description }
-		</p>
-		<div className="flex flex-row dark:text-zinc-400 text-xs absolute bottom-1 w-full">
-			<div className="flex">
-				<ClockIcon className="w-4 h-4 mr-2" /><span>{timeAgo(time)}</span>
-			</div>
-			<div className="ml-auto mr-7 -mt-1">
-				{dropdown}
-			</div>
-		</div>
-	</div>
-	</Link>
-}

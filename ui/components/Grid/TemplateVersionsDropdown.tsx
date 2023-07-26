@@ -1,19 +1,25 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { CaretSortIcon, CheckIcon, ChevronLeftIcon, PlusCircledIcon, PlusIcon } from "@radix-ui/react-icons";
+import {
+	CaretSortIcon,
+	CheckIcon,
+	ChevronLeftIcon,
+	PlusCircledIcon,
+	PlusIcon,
+} from "@radix-ui/react-icons";
 import { twMerge } from "tailwind-merge";
 import { trpc } from "../../utils/trpc";
 import { Button } from "../Shared/Button";
 
 type TDropdownProps = {
-    collectionId: string;
-    selectedIds: string[];
+	collectionId: string;
+	selectedIds: string[];
 	onChange: (templateId: string, versionId: string) => void;
 };
 
 export const TemplateVersionsDropdown = ({
-    collectionId,
+	collectionId,
 	onChange,
-    selectedIds
+	selectedIds,
 }: TDropdownProps) => {
 	const { data: templates } = trpc.templates.all.useQuery({ collectionId });
 
@@ -23,8 +29,8 @@ export const TemplateVersionsDropdown = ({
 				<div className="relative border-0 hover:border-0">
 					<Button
 						text="Select prompt templates"
-                        leftIcon={<PlusCircledIcon />}
-                        rightIcon={<CaretSortIcon />}
+						leftIcon={<PlusCircledIcon />}
+						rightIcon={<CaretSortIcon />}
 					/>
 				</div>
 			</DropdownMenu.Trigger>
@@ -40,30 +46,56 @@ export const TemplateVersionsDropdown = ({
 				>
 					{(templates ?? []).map((template) => (
 						<DropdownMenu.Sub key={template._id}>
-                            <DropdownMenu.SubTrigger className="w-full px-4 py-2 text-left text-sm rounded hover:bg-zinc-100 hover:text-white dark:hover:bg-zinc-800 focus:outline-none cursor-pointer">
-                                <div className="flex"><ChevronLeftIcon className="mt-1 mr-2" /><span>{template.name}</span></div>
-                            </DropdownMenu.SubTrigger>
-                            <DropdownMenu.Portal>
-                                <DropdownMenu.SubContent
-                                    className="min-w-[220px] bg-white dark:bg-[#1D1D20] rounded-md p-[5px] text-zinc-500"
-                                    sideOffset={2}
-                                    alignOffset={-5}
-                                >
-                                    {template.versions.map((version, index) => (
-                                    <DropdownMenu.Item 
-                                        onClick={(e) => {
-                                            e.preventDefault(); 
-                                            onChange(template._id, version._id)}
-                                        }
-                                        key={version._id} className="w-full px-4 py-2 text-left text-sm rounded hover:bg-zinc-100 hover:text-white dark:hover:bg-zinc-800 focus:outline-none cursor-pointer">
-                                        <div className="flex text-zinc-500">
-                                            {selectedIds.includes(version._id) ? <CheckIcon className="mt-1 mr-2" /> : <PlusIcon className="mt-1 mr-2" />}
-                                            {index === 0 ? 'Latest' : `Version ${template.versions.length - index}`}
-                                        </div>
-                                    </DropdownMenu.Item>
-                                    ))}
-                                </DropdownMenu.SubContent>
-                            </DropdownMenu.Portal>
+							<DropdownMenu.SubTrigger className="w-full px-4 py-2 text-left text-sm rounded hover:bg-zinc-100 hover:text-white dark:hover:bg-zinc-800 focus:outline-none cursor-pointer">
+								<div className="flex">
+									<ChevronLeftIcon className="mt-1 mr-2" />
+									<span>{template.name}</span>
+								</div>
+							</DropdownMenu.SubTrigger>
+							<DropdownMenu.Portal>
+								<DropdownMenu.SubContent
+									className="min-w-[220px] bg-white dark:bg-[#1D1D20] rounded-md p-[5px] text-zinc-500 hover:text-white"
+									sideOffset={2}
+									alignOffset={-5}
+								>
+									{template.versions.map((version, index) => (
+										<DropdownMenu.Item
+											onClick={(e) => {
+												e.preventDefault();
+												onChange(
+													template._id,
+													version._id,
+												);
+											}}
+											key={version._id}
+											className={twMerge(
+												"w-full px-4 py-2 text-left text-sm rounded hover:bg-zinc-100 text-zinc-500 hover:text-white dark:hover:bg-zinc-800 focus:outline-none cursor-pointer",
+												selectedIds.includes(
+													version._id,
+												)
+													? "text-white "
+													: "",
+											)}
+										>
+											<div className="flex ">
+												{selectedIds.includes(
+													version._id,
+												) ? (
+													<CheckIcon className="mt-1 mr-2 text-green-400" />
+												) : (
+													<PlusIcon className="mt-1 mr-2" />
+												)}
+												{index === 0
+													? "Latest"
+													: `Version ${
+															template.versions
+																.length - index
+													  }`}
+											</div>
+										</DropdownMenu.Item>
+									))}
+								</DropdownMenu.SubContent>
+							</DropdownMenu.Portal>
 						</DropdownMenu.Sub>
 					))}
 
@@ -73,3 +105,4 @@ export const TemplateVersionsDropdown = ({
 		</DropdownMenu.Root>
 	);
 };
+
