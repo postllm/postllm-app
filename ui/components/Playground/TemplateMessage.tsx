@@ -96,7 +96,7 @@ export const TemplateMessage = ({
 		>
 			<div
 				className={twMerge(
-					"group grid grid-cols-[110px,1fr,auto] items-center justify-center px-6 py-6",
+					"group grid grid-cols-[110px,1fr,auto] items-center justify-center px-6 py-6 first:py-10",
 					light ? "" : "bg-gray-100 dark:bg-gray-700/20",
 				)}
 			>
