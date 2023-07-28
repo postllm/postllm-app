@@ -25,7 +25,62 @@ const submitSchema = z.object({
 	llm: llm.schema.optional(),
 });
 
+const completionSchema = z.object({
+	temperature: z.number(),
+	modelName: z.string(),
+	streaming: z.boolean().default(false),
+	text: z.array(z.string()),
+});
+
+const genCandidateSchema = z.object({
+	count: z.number().default(1),
+	text: z.array(z.string()),
+});
+
 export const llmRouter = router({
+	genPromptCandidates: procedure
+		.input(genCandidateSchema)
+		.mutation(async ({ input }) => {
+			const configuration = await config.get();
+
+			const chat = new ChatOpenAI({
+				modelName: "gpt-4",
+				temperature: 0.9,
+				streaming: false,
+				openAIApiKey: configuration?.apiKeys?.openAIKey,
+				n: input.count,
+			});
+
+			const system = SystemMessagePromptTemplate.fromTemplate();
+
+			const chain = new LLMChain({
+				llm: chat,
+				prompt: ChatPromptTemplate.fromPromptMessages(input.messages),
+			});
+
+			const res = await chain.call([]);
+			return res;
+		}),
+	completion: procedure
+		.input(completionSchema)
+		.mutation(async ({ input }) => {
+			const configuration = await config.get();
+
+			const chat = new ChatOpenAI({
+				modelName: input.modelName,
+				temperature: input.temperature,
+				streaming: input.streaming,
+				openAIApiKey: configuration?.apiKeys?.openAIKey,
+			});
+
+			const chain = new LLMChain({
+				llm: chat,
+				prompt: ChatPromptTemplate.fromPromptMessages(input.messages),
+			});
+
+			const res = await chain.call([]);
+			return res;
+		}),
 	submit: procedure
 		.input(submitSchema)
 		.subscription(async ({ input, ctx }) => {
@@ -41,27 +96,39 @@ export const llmRouter = router({
 
 				const variables = input.variables ?? template.variables ?? {};
 				let messages = version.messages.map((m) => {
-					const cleaned = cleanPrompt(m.prompt, variables)
+					const cleaned = cleanPrompt(m.prompt, variables);
 					switch (m.role) {
 						case "user":
-							return HumanMessagePromptTemplate.fromTemplate(cleaned);
+							return HumanMessagePromptTemplate.fromTemplate(
+								cleaned,
+							);
 						case "system":
-							return SystemMessagePromptTemplate.fromTemplate(cleaned);
+							return SystemMessagePromptTemplate.fromTemplate(
+								cleaned,
+							);
 						case "assistant":
-							return AIMessagePromptTemplate.fromTemplate(cleaned);
+							return AIMessagePromptTemplate.fromTemplate(
+								cleaned,
+							);
 					}
 				});
 
 				const rest = input.messages.map((m) => {
-					const cleaned = cleanPrompt(m.prompt, variables)
+					const cleaned = cleanPrompt(m.prompt, variables);
 					switch (m.role) {
 						case "system":
-							return SystemMessagePromptTemplate.fromTemplate(cleaned);
+							return SystemMessagePromptTemplate.fromTemplate(
+								cleaned,
+							);
 						case "assistant":
-							return AIMessagePromptTemplate.fromTemplate(cleaned);
+							return AIMessagePromptTemplate.fromTemplate(
+								cleaned,
+							);
 						case "user":
 						default:
-							return HumanMessagePromptTemplate.fromTemplate(cleaned);
+							return HumanMessagePromptTemplate.fromTemplate(
+								cleaned,
+							);
 					}
 				});
 
