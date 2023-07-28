@@ -61,8 +61,7 @@ export const templatesRouter = router({
 		.input(upsertSchema)
 		.output(promptTemplate.schema.nullable())
 		.mutation(async ({ input, ctx }) => {
-			console.log(JSON.stringify(input, null, 2));
-
+			console.log("update", input);
 			const data = await promptTemplate.update({
 				...input,
 				modifiedAt: Date.now(),

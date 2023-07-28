@@ -20,10 +20,13 @@ export const TemplateViewer = () => {
 	const { data: template } = trpc.templates.get.useQuery({
 		id: templateId as string,
 	});
-	const { data: version } = trpc.templates.getVersion.useQuery({
-		id: templateId as string,
-		versionId: versionId as string,
-	});
+	const { data: version } = trpc.templates.getVersion.useQuery(
+		{
+			id: templateId as string,
+			versionId: versionId as string,
+		},
+		{ enabled: !!versionId },
+	);
 	const { mutateAsync: saveTemplate } = trpc.templates.update.useMutation({
 		onSuccess: () => {
 			utils.templates.get.invalidate({ id: templateId });
@@ -47,8 +50,10 @@ export const TemplateViewer = () => {
 	);
 
 	const onNewVersion = useCallback(
-		async (prompt?: string) => {
+		async (e: MouseEvent | null, prompt?: string) => {
+			if (e?.preventDefault) e.preventDefault();
 			if (!template) return;
+			if (!version) return;
 
 			const copy = structuredClone(version);
 			if (!copy) return;
@@ -65,14 +70,13 @@ export const TemplateViewer = () => {
 				versions: [copy, ...template.versions],
 			});
 
-			console.log(copy);
-
 			navigate(
 				`/workspaces/${workspaceId}/dashboard/${collectionId}/templates/${templateId}/${copy._id}`,
 			);
 		},
 		[
 			template,
+			version,
 			saveTemplate,
 			navigate,
 			workspaceId,
@@ -172,7 +176,7 @@ export const TemplateViewer = () => {
 								role={message.role}
 								message={message.prompt}
 								variables={template?.variables ?? {}}
-								onNewVersion={onNewVersion}
+								onNewVersion={(s) => onNewVersion(null, s)}
 								enableGenerate={index === 0}
 							/>
 						),
