@@ -1,9 +1,14 @@
-import { Cross1Icon, MagicWandIcon, ReloadIcon } from "@radix-ui/react-icons";
+import {
+	Cross1Icon,
+	EraserIcon,
+	MagicWandIcon,
+	ReloadIcon,
+} from "@radix-ui/react-icons";
 import { PromptTemplate } from "langchain";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { TVariables } from "ui/@types";
-import { trpc } from "ui/utils/trpc";
+import { trpc } from "../../utils/trpc";
 import useAutosizeTextArea from "../../utils/useAutosizeTextArea";
 import { Button, CopyButton, IconButton } from "../Shared/Button";
 
@@ -14,6 +19,8 @@ type TTemplateMessageProps = {
 	light?: boolean;
 	onRemove?: () => void;
 	onRefresh?: () => void;
+	onNewVersion?: (prompt?: string) => void;
+	enableGenerate?: boolean;
 };
 
 export const TemplateMessage = ({
@@ -23,11 +30,15 @@ export const TemplateMessage = ({
 	light,
 	onRefresh,
 	onRemove,
+	onNewVersion,
+	enableGenerate = false,
 }: TTemplateMessageProps) => {
 	const [value, setValue] = useState<string>("");
+	const [promptState, setPromptState] = useState<"loading" | "ready">();
 	const textAreaRef = useRef<HTMLTextAreaElement>(null);
 	useAutosizeTextArea(textAreaRef.current, value);
-	const { mutateAsync: onCompletion } = trpc.llm.completion.useMutation();
+	const { mutateAsync: genPromptCandidates } =
+		trpc.llm.genPromptCandidates.useMutation();
 
 	const text = useMemo(() => {
 		let txt = message;
@@ -56,14 +67,27 @@ export const TemplateMessage = ({
 	}, [text, variables]);
 
 	const onGenerateNewPrompt = useCallback(async () => {
-		const prompt = new PromptTemplate({
-			template: text,
-			inputVariables: Object.keys(variables),
-		});
+		if (!text) return;
+		if (promptState === "loading") return;
 
-		const val = await prompt.format(variables);
-		setValue(val);
-	}, []);
+		if (promptState === "ready") {
+			// Keep the prompt
+			console.log("Keep the prompt", value, onNewVersion);
+
+			onNewVersion?.(value);
+			setPromptState(undefined);
+			return;
+		}
+
+		setPromptState("loading");
+		const res = await genPromptCandidates({ text, count: 1 });
+		if (res.text) {
+			setValue(res.text);
+			setPromptState("ready");
+		} else {
+			setPromptState(undefined);
+		}
+	}, [promptState, text, onNewVersion, genPromptCandidates]);
 
 	return (
 		<div
@@ -115,18 +139,44 @@ export const TemplateMessage = ({
 						{value}
 					</p>
 				</div>
-				<Button
-					secondary
-					text={"Improve prompt"}
-					leftIcon={<MagicWandIcon className="w-3 h-3 text-xs" />}
-					className="absolute top-2 right-28 hidden group-hover:flex"
-					tooltip="Generate a new prompt"
-					onClick={onGenerateNewPrompt}
-				/>
-				<CopyButton
-					text={value}
-					className="absolute top-2 right-4 hidden group-hover:flex"
-				/>
+				<div className="flex gap-2 absolute top-2 right-4">
+					{promptState === "ready" && (
+						<Button
+							text="Cancel"
+							onClick={() => {
+								setValue(message);
+								setPromptState(undefined);
+							}}
+							leftIcon={
+								<EraserIcon className="w-3 h-3 text-xs" />
+							}
+							className="hidden group-hover:flex"
+						/>
+					)}
+					{enableGenerate && (
+						<Button
+							secondary
+							disabled={promptState === "loading"}
+							text={
+								promptState === "loading"
+									? "Generating"
+									: promptState === "ready"
+									? "Keep?"
+									: "Improve prompt"
+							}
+							leftIcon={
+								<MagicWandIcon className="w-3 h-3 text-xs" />
+							}
+							className="hidden group-hover:flex"
+							tooltip="Generate a new prompt"
+							onClick={onGenerateNewPrompt}
+						/>
+					)}
+					<CopyButton
+						text={value}
+						className="hidden group-hover:flex"
+					/>
+				</div>
 			</div>
 		</div>
 	);

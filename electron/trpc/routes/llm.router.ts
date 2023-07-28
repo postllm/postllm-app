@@ -9,6 +9,7 @@ import {
 	SystemMessagePromptTemplate,
 } from "langchain/prompts";
 import { z } from "zod";
+import { GENERATE_CANDIDATE_PROMPTS } from "../../common/constants";
 import { config, llm, promptTemplate } from "../../models";
 import { procedure, router } from "../trpc";
 
@@ -34,7 +35,7 @@ const completionSchema = z.object({
 
 const genCandidateSchema = z.object({
 	count: z.number().default(1),
-	text: z.array(z.string()),
+	text: z.string(),
 });
 
 export const llmRouter = router({
@@ -51,11 +52,15 @@ export const llmRouter = router({
 				n: input.count,
 			});
 
-			const system = SystemMessagePromptTemplate.fromTemplate();
+			const rand = Date.now() % GENERATE_CANDIDATE_PROMPTS.length;
+			const system = SystemMessagePromptTemplate.fromTemplate(
+				GENERATE_CANDIDATE_PROMPTS[rand],
+			);
+			const user = HumanMessagePromptTemplate.fromTemplate(input.text);
 
 			const chain = new LLMChain({
 				llm: chat,
-				prompt: ChatPromptTemplate.fromPromptMessages(input.messages),
+				prompt: ChatPromptTemplate.fromPromptMessages([system, user]),
 			});
 
 			const res = await chain.call([]);

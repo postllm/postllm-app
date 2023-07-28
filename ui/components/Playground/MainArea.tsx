@@ -1,6 +1,6 @@
 import { CaretSortIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
 import { useCallback, useState } from "react";
-import { useHotkeys } from 'react-hotkeys-hook';
+import { useHotkeys } from "react-hotkeys-hook";
 import { useParams } from "react-router-dom";
 import { trpc } from "../../utils/trpc";
 import { Button } from "../Shared/Button";
@@ -13,8 +13,8 @@ export const MainArea = () => {
 	const [messages, setMessages] = useState<any[]>([]);
 	const [typing, setTyping] = useState<string>("");
 	const [start, setStart] = useState<boolean>(false);
-	useHotkeys('mod+Enter', () => setStart(true), [start]);
-	
+	useHotkeys("mod+Enter", () => setStart(true), [start]);
+
 	trpc.llm.submit.useSubscription(
 		{
 			templateId: templateId as string,
@@ -60,8 +60,6 @@ export const MainArea = () => {
 		onRemoveMessage(index);
 		setStart(true);
 	}, []);
-
-	console.log(messages);
 
 	return (
 		<div className="border-r border-white/10 w-full h-screen">
@@ -109,7 +107,9 @@ type TSubmitTemplateMessageProps = {
 const SubmitTemplateMessage = ({ onSubmit }: TSubmitTemplateMessageProps) => {
 	const [role, setRole] = useState<string>("user");
 	const [message, setMessage] = useState<string>("");
-	useHotkeys('mod+Enter', () => onButtonClick(), [message, role], { enableOnFormTags: true });
+	useHotkeys("mod+Enter", () => onButtonClick(), [message, role], {
+		enableOnFormTags: true,
+	});
 
 	const onButtonClick = useCallback(() => {
 		console.log(message);
