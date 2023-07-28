@@ -6,7 +6,7 @@ type TDropdownProps = {
 	label: string;
 	leftIcon?: React.ReactNode;
 	rightIcon?: React.ReactNode;
-	options: { key: string; value: string }[];
+	options: { key: string; value: string | React.ReactNode }[];
 	primary?: boolean;
 	onChange?: (key: string) => void;
 };
@@ -44,9 +44,9 @@ export const Dropdown = ({
 					{options.map((option) => (
 						<DropdownMenu.Item
 							onClick={(e) => {
-								e.preventDefault(); 
-								onChange?.(option.key)}
-							}
+								e.preventDefault();
+								onChange?.(option.key);
+							}}
 							key={option.key}
 							className="w-full px-4 py-2 text-left text-sm rounded hover:bg-zinc-100 hover:text-white dark:hover:bg-zinc-800 focus:outline-none cursor-pointer"
 						>

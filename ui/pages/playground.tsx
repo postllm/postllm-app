@@ -8,19 +8,26 @@ import { trpc } from "../utils/trpc";
 export const PlaygroundPage = () => {
 	const { workspaceId, collectionId, templateId, versionId } = useParams();
 	const navigate = useNavigate();
-	const { data: template } = trpc.templates.get.useQuery({ id: templateId as string });
+	const { data: template } = trpc.templates.get.useQuery({
+		id: templateId as string,
+	});
 
 	useEffect(() => {
 		if (!template) return;
 		if (versionId) return;
-		
+
 		const latestVersion = template.versions[0];
-		if (latestVersion) {  
-			navigate(`/workspaces/${workspaceId}/dashboard/${collectionId}/templates/${templateId}/${latestVersion._id}`);
+		const defaultVersion = template.versions.find((v) => v.default);
+		if (defaultVersion || latestVersion) {
+			navigate(
+				`/workspaces/${workspaceId}/dashboard/${collectionId}/templates/${templateId}/${
+					defaultVersion?._id || latestVersion._id
+				}`,
+			);
 		} else {
 			// Create and navigate
 		}
-	}, [template, navigate, versionId, workspaceId, collectionId, templateId])
+	}, [template, navigate, versionId, workspaceId, collectionId, templateId]);
 
 	return (
 		<Layout>

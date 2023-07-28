@@ -29,6 +29,7 @@ export const schema = BaseModelSchema.extend({
 	versions: z.array(templateVersionSchema),
 	settings: llm.schema,
 	variables: z.record(z.string(), z.any()).optional(),
+	defaultVersionId: z.string().optional(),
 });
 
 export type IPromptTemplate = z.infer<typeof schema>;
@@ -48,12 +49,14 @@ export function create(patch: Partial<IPromptTemplate> = {}) {
 	return db.docCreate<IPromptTemplate>(type, patch);
 }
 
-export async function update(patch: Partial<IPromptTemplate> = {}): Promise<IPromptTemplate | null> {
+export async function update(
+	patch: Partial<IPromptTemplate> = {},
+): Promise<IPromptTemplate | null> {
 	const doc = await db.getWhere<IPromptTemplate>(type, { _id: patch._id });
 	if (!doc) return null;
 
 	const data = await db.docUpdate<IPromptTemplate>(doc, patch);
-	return data.affectedDocuments as IPromptTemplate ?? null;
+	return (data.affectedDocuments as IPromptTemplate) ?? null;
 }
 
 export function findByCollectionId(_id: string) {
@@ -67,8 +70,10 @@ export function remove(template: IPromptTemplate) {
 
 export async function getById(_id: string): Promise<IPromptTemplate | null> {
 	// @ts-ignore
-	const list = await db.findMostRecentlyModified<IPromptTemplate[]>(type, { _id });
-	return list?.[0] as unknown as IPromptTemplate ?? null;
+	const list = await db.findMostRecentlyModified<IPromptTemplate[]>(type, {
+		_id,
+	});
+	return (list?.[0] as unknown as IPromptTemplate) ?? null;
 }
 
 export async function seed() {
@@ -83,7 +88,7 @@ export async function seed() {
 		versions: [
 			{
 				_id: nanoid(),
-				mode:"chat",
+				mode: "chat",
 				messages: [
 					{
 						_id: nanoid(),
@@ -120,7 +125,7 @@ export async function seed() {
 		versions: [
 			{
 				_id: nanoid(),
-				mode:"chat",
+				mode: "chat",
 				messages: [
 					{
 						_id: nanoid(),
@@ -156,7 +161,7 @@ export async function seed() {
 		versions: [
 			{
 				_id: nanoid(),
-				mode:"chat",
+				mode: "chat",
 				messages: [
 					{
 						_id: nanoid(),
@@ -205,3 +210,4 @@ export async function seed() {
 		],
 	});
 }
+

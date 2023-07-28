@@ -70,7 +70,8 @@ const schema = import_base.BaseModelSchema.extend({
   name: import_zod.z.string(),
   versions: import_zod.z.array(templateVersionSchema),
   settings: llm.schema,
-  variables: import_zod.z.record(import_zod.z.string(), import_zod.z.any()).optional()
+  variables: import_zod.z.record(import_zod.z.string(), import_zod.z.any()).optional(),
+  defaultVersionId: import_zod.z.string().optional()
 });
 function init() {
   return {
@@ -97,7 +98,9 @@ function remove(template) {
   return import_database.database.remove(template);
 }
 async function getById(_id) {
-  const list = await import_database.database.findMostRecentlyModified(type, { _id });
+  const list = await import_database.database.findMostRecentlyModified(type, {
+    _id
+  });
   return (list == null ? void 0 : list[0]) ?? null;
 }
 async function seed() {

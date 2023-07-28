@@ -61,9 +61,12 @@ export const templatesRouter = router({
 		.input(upsertSchema)
 		.output(promptTemplate.schema.nullable())
 		.mutation(async ({ input, ctx }) => {
-			console.log(JSON.stringify(input, null ,2));
+			console.log(JSON.stringify(input, null, 2));
 
-			const data = await promptTemplate.update({...input, modifiedAt: Date.now()});
+			const data = await promptTemplate.update({
+				...input,
+				modifiedAt: Date.now(),
+			});
 			return data;
 		}),
 	delete: procedure.input(inputSchema).mutation(async ({ input, ctx }) => {

@@ -7,6 +7,7 @@ import {
 import { nanoid } from "nanoid";
 import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { twMerge } from "tailwind-merge";
 import { trpc } from "../../utils/trpc";
 import { Button } from "../Shared/Button";
 import { Dropdown } from "../Shared/Dropdown";
@@ -32,6 +33,18 @@ export const TemplateViewer = () => {
 			});
 		},
 	});
+
+	const onChangeDefaultVersion = useCallback(
+		async (e: MouseEvent, versionId: string) => {
+			e.preventDefault();
+			e.stopPropagation();
+
+			if (!template) return;
+
+			saveTemplate({ ...template, defaultVersionId: versionId });
+		},
+		[template, saveTemplate],
+	);
 
 	const onNewVersion = useCallback(
 		async (prompt?: string) => {
@@ -69,6 +82,11 @@ export const TemplateViewer = () => {
 	);
 
 	const versionCount = template?.versions.length ?? 0;
+	const versionIndex = (template?.versions ?? []).findIndex(
+		(x) => x._id === version?._id,
+	);
+	let versionSuffix =
+		versionIndex === 0 ? "Latest" : versionCount - versionIndex;
 
 	return (
 		<div className="relative">
@@ -78,19 +96,43 @@ export const TemplateViewer = () => {
 				</div>
 				<div className="ml-auto mr-4 flex gap-4">
 					<Dropdown
-						label={`Version: ${
-							template &&
-							version &&
-							versionCount -
-								template.versions.findIndex(
-									(x) => x._id === version._id,
-								)
-						}`}
+						label={`Version: ${versionSuffix}`}
 						rightIcon={<CaretSortIcon />}
 						leftIcon={<CounterClockwiseClockIcon />}
 						options={
 							template?.versions.map((x, i) => ({
-								value: `Version ${versionCount - i}`,
+								value: (
+									<div
+										key={x._id}
+										className="flex w-full group min-w-[200px] items-center justify-center"
+									>
+										<span>{`Version ${
+											versionCount - i
+										}`}</span>
+										<Button
+											onClick={(e) =>
+												onChangeDefaultVersion(e, x._id)
+											}
+											className={twMerge(
+												"text-[10px] ml-auto group-hover:opacity-100",
+												x._id ===
+													template.defaultVersionId
+													? ""
+													: "opacity-0",
+											)}
+											disabled={
+												x._id ===
+												template.defaultVersionId
+											}
+											text={
+												x._id ===
+												template.defaultVersionId
+													? "Default"
+													: "Set as default"
+											}
+										/>
+									</div>
+								),
 								key: x._id,
 							})) ?? []
 						}
