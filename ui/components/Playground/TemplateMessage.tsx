@@ -1,6 +1,7 @@
 import {
 	Cross1Icon,
 	EraserIcon,
+	LockClosedIcon,
 	MagicWandIcon,
 	ReloadIcon,
 } from "@radix-ui/react-icons";
@@ -37,6 +38,8 @@ export const TemplateMessage = ({
 	const [promptState, setPromptState] = useState<"loading" | "ready">();
 	const textAreaRef = useRef<HTMLTextAreaElement>(null);
 	useAutosizeTextArea(textAreaRef.current, value);
+
+	const { data: hasLicense } = trpc.config.hasLicense.useQuery();
 	const { mutateAsync: genPromptCandidates } =
 		trpc.llm.genPromptCandidates.useMutation();
 
@@ -156,7 +159,7 @@ export const TemplateMessage = ({
 					{enableGenerate && (
 						<Button
 							secondary
-							disabled={promptState === "loading"}
+							disabled={!hasLicense || promptState === "loading"}
 							text={
 								promptState === "loading"
 									? "Generating"
@@ -167,8 +170,15 @@ export const TemplateMessage = ({
 							leftIcon={
 								<MagicWandIcon className="w-3 h-3 text-xs" />
 							}
+							rightIcon={
+								!hasLicense ?? (
+									<LockClosedIcon className="w-3 h-3 text-xs" />
+								)
+							}
 							className="hidden group-hover:flex"
-							tooltip="Generate a new prompt"
+							tooltip={`Generate a new prompt ${
+								hasLicense ? "" : "(requires a license)"
+							}`}
 							onClick={onGenerateNewPrompt}
 						/>
 					)}

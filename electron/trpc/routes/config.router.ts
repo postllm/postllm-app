@@ -14,6 +14,14 @@ export const configRouter = router({
 	update: procedure.input(config.schema).mutation(async ({ input, ctx }) => {
 		return await config.update(input);
 	}),
+	hasLicense: procedure.output(z.boolean()).query(async ({ input, ctx }) => {
+		const nodeEnv = process.env.NODE_ENV;
+		if (nodeEnv === "development") return true;
+
+		const _config = await config.get();
+		if (!_config) return false;
+		return _config.licenseValid;
+	}),
 	updateLicense: procedure
 		.input(z.object({ licenseKey: z.string() }))
 		.mutation(async ({ input, ctx }) => {

@@ -75,7 +75,7 @@
 		"update": "taze latest -w",
 		"loadenv": "node -r dotenv/config .env",
 		"build": "dotenv -- vite build && electron-builder --publish always",
-		"build-draft": "dotenv -- vite build && electron-builder",
+		"build-draft": "dotenv -- vite NODE_ENV=production build && electron-builder",
 		"preview": "vite preview"
 	},
 	"eslintConfig": {
@@ -96,3 +96,4 @@
 		]
 	}
 }
+

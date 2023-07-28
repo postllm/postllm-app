@@ -42,6 +42,7 @@ export const Button = ({
 								? "inline-flex justify-center overflow-hidden text-sm font-medium transition rounded-full bg-zinc-900 py-1 px-3 text-white hover:bg-zinc-700 dark:bg-orange-400/10 dark:text-orange-400 dark:ring-1 dark:ring-inset dark:ring-orange-400/20 dark:hover:bg-orange-400/10 dark:hover:text-orange-300 dark:hover:ring-orange-300"
 								: "",
 							className,
+							disabled ? "cursor-not-allowed" : "",
 						)}
 					>
 						{leftIcon}
