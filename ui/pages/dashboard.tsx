@@ -162,6 +162,7 @@ export const DashboardPage = () => {
 								<NavLink
 									onClick={() => setFilter(null)}
 									active={!filter}
+									className="text-left"
 								>
 									All
 								</NavLink>
