@@ -8,24 +8,28 @@ import {
 	PlusCircledIcon,
 	ViewGridIcon,
 } from "@radix-ui/react-icons";
-import { FC, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 import { Layout } from "../components/Layout";
 import { CreateCollectionModal } from "../components/Modals/CreateCollectionModal";
+import { RenameCollectionModal } from "../components/Modals/RenameCollectionModal";
 import { WarningBanner } from "../components/Shared/Banner";
 import { Dropdown } from "../components/Shared/Dropdown";
 import { SectionTitle } from "../components/Shared/SectionTitle";
 import { timeAgo } from "../utils/timeAgo";
 import { trpc } from "../utils/trpc";
 
-export const DashboardPage: FC = () => {
+export const DashboardPage = () => {
 	const { collectionId, workspaceId } = useParams();
 	const utils = trpc.useContext();
 	const [filter, setFilter] = useState<
 		"Template" | "Grid" | "Chat" | "File" | null
 	>();
 	const [showNewCollection, setShowNewCollection] = useState(false);
+	const [showRenameCollection, setShowRenameCollection] = useState<
+		string | null
+	>("");
 	const { data: config } = trpc.config.get.useQuery();
 	const { data: templates } = trpc.templates.all.useQuery({
 		collectionId: `${collectionId}`,
@@ -42,6 +46,8 @@ export const DashboardPage: FC = () => {
 	const { mutateAsync: deletePrompt } = trpc.templates.delete.useMutation();
 	const { mutateAsync: clonePrompt } = trpc.templates.clone.useMutation();
 	const { mutateAsync: deleteGrid } = trpc.grids.delete.useMutation();
+	const { mutateAsync: deleteCollection } =
+		trpc.collections.delete.useMutation();
 
 	const onHandleOption = useCallback(
 		async (type: string, action: string, id: string) => {
@@ -59,6 +65,28 @@ export const DashboardPage: FC = () => {
 		[clonePrompt, deletePrompt, utils],
 	);
 
+	const onCollectionAction = useCallback(
+		async (collectionId: string, action: string) => {
+			setShowRenameCollection(null);
+
+			if (action === "delete") {
+				if (confirm("Are you sure you want to delete this space?")) {
+					await deleteCollection({
+						id: collectionId,
+					});
+					utils.collections.all.invalidate();
+				}
+				return;
+			}
+
+			if (action === "rename") {
+				console.log(collectionId);
+				setShowRenameCollection(collectionId);
+			}
+		},
+		[collection],
+	);
+
 	const entities = [...(templates ?? []), ...(grids ?? [])].filter((e) => {
 		if (!filter) return true;
 		if (filter) return e.type === filter;
@@ -71,7 +99,7 @@ export const DashboardPage: FC = () => {
 					<div className="pt-2 min-h-[500px]">
 						{/* Collections */}
 						<SectionTitle
-							title="Prompt collections"
+							title="Spaces"
 							leftIcon={
 								<BackpackIcon className="font-semibold leading-6 text-emerald-500 dark:text-emerald-400" />
 							}
@@ -85,8 +113,37 @@ export const DashboardPage: FC = () => {
 										key={col._id}
 										href={`/workspaces/${workspaceId}/dashboard/${col._id}`}
 										active={collection?._id === col._id}
+										className="w-full"
 									>
-										{col.name}
+										<div className="flex w-full">
+											<span>{col.name}</span>
+											{col._id === collectionId && (
+												<span className="ml-auto">
+													<Dropdown
+														leftIcon={
+															<DotsVerticalIcon className="w-2 h-2" />
+														}
+														options={[
+															{
+																key: "rename",
+																value: "Rename",
+															},
+															{
+																key: "delete",
+																value: "Delete",
+															},
+														]}
+														label={""}
+														onChange={(key) =>
+															onCollectionAction(
+																col._id,
+																key,
+															)
+														}
+													/>
+												</span>
+											)}
+										</div>
 									</NavLink>
 								))}
 							</ul>
@@ -125,7 +182,7 @@ export const DashboardPage: FC = () => {
 								>
 									<span className="flex">
 										<ViewGridIcon className="mr-2 text-rose-400" />{" "}
-										Comparitors
+										Compare Prompts
 									</span>
 								</NavLink>
 								<NavLink
@@ -199,6 +256,12 @@ export const DashboardPage: FC = () => {
 			{showNewCollection && (
 				<CreateCollectionModal open={showNewCollection} />
 			)}
+			{showRenameCollection && (
+				<RenameCollectionModal
+					collectionId={showRenameCollection}
+					open={!!showRenameCollection}
+				/>
+			)}
 		</Layout>
 	);
 };
@@ -236,7 +299,7 @@ function NavLink({
 				className,
 			)}
 		>
-			<span className="truncate">{children}</span>
+			<span className="w-full">{children}</span>
 		</button>
 	);
 }

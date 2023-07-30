@@ -44,6 +44,10 @@ export function getById(_id: string) {
 	return db.getWhere<ICollection>(type, { _id });
 }
 
+export function remove(template: ICollection) {
+	return db.remove(template);
+}
+
 export async function seed() {
 	const defaultCollection = await getById(DEFAULT_COLLECTION_ID);
 	if (!defaultCollection) {

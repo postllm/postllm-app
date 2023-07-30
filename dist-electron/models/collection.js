@@ -25,6 +25,7 @@ __export(stdin_exports, {
   getById: () => getById,
   init: () => init,
   name: () => name,
+  remove: () => remove,
   schema: () => schema,
   seed: () => seed,
   type: () => type,
@@ -63,6 +64,9 @@ function all() {
 }
 function getById(_id) {
   return import_database.database.getWhere(type, { _id });
+}
+function remove(template) {
+  return import_database.database.remove(template);
 }
 async function seed() {
   const defaultCollection = await getById(DEFAULT_COLLECTION_ID);

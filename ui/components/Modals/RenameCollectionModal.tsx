@@ -4,25 +4,37 @@ import { useCallback, useState } from "react";
 import { useParams } from "react-router-dom";
 import { trpc } from "../../utils/trpc";
 
-type TCreateCollectionModalProps = {
+type TRenameCollectionModalProps = {
 	open: boolean;
+	collectionId: string;
 };
 
-export const CreateCollectionModal = ({
+export const RenameCollectionModal = ({
 	open,
-}: TCreateCollectionModalProps) => {
+	collectionId,
+}: TRenameCollectionModalProps) => {
 	const { workspaceId } = useParams();
 	const [show, setShow] = useState(open);
 	const [name, setName] = useState("");
 	const utils = trpc.useContext();
-	const { mutateAsync: createCollection } =
-		trpc.collections.create.useMutation();
+	const { data: collection } = trpc.collections.get.useQuery({
+		id: collectionId,
+	});
+	const { mutateAsync: update } = trpc.collections.update.useMutation();
 
 	const onCreate = useCallback(async () => {
-		await createCollection({ name, workspaceId: workspaceId as string });
+		if (!collection) return;
+		if (!name) return;
+
+		await update({
+			...collection,
+			name,
+			workspaceId: workspaceId as string,
+		});
 		utils.collections.all.invalidate();
+		utils.collections.get.invalidate({ id: collection?._id });
 		setShow(false);
-	}, [name]);
+	}, [collection, update, name]);
 
 	return (
 		<Dialog.Root open={show} onOpenChange={setShow}>
@@ -46,7 +58,8 @@ export const CreateCollectionModal = ({
 							onChange={(e) => setName(e.target.value ?? "")}
 							className="text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
 							id="name"
-							defaultValue="Space Name"
+							placeholder={collection?.name}
+							defaultValue={collection?.name}
 						/>
 					</fieldset>
 					<div className="mt-[25px] flex justify-end">
@@ -56,7 +69,7 @@ export const CreateCollectionModal = ({
 								onClick={onCreate}
 								className="bg-green4 text-green11 hover:bg-green5 focus:shadow-green7 inline-flex h-[35px] items-center justify-center rounded-[4px] px-[15px] font-medium leading-none focus:shadow-[0_0_0_2px] focus:outline-none"
 							>
-								Create
+								Save
 							</button>
 						</Dialog.Close>
 					</div>

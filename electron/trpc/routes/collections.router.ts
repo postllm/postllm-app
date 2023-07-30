@@ -12,8 +12,9 @@ const allSchema = z.object({
 
 const upsertSchema = z.object({
 	name: z.string(),
-	id: z.string().optional(),
 	workspaceId: z.string(),
+	id: z.string().optional(),
+	_id: z.string().optional(),
 });
 
 export const collectionsRouter = router({
@@ -41,11 +42,21 @@ export const collectionsRouter = router({
 		}),
 	update: procedure
 		.input(upsertSchema)
-		.output(collection.schema)
 		// @ts-ignore
 		.mutation(async ({ input, ctx }) => {
 			const col = await collection.update(input);
 			return col;
 		}),
+	delete: procedure.input(inputSchema).mutation(async ({ input, ctx }) => {
+		// @ts-ignore
+		await collection.remove({ _id: input.id });
+
+		// Remove grids
+		// Remove templates
+		// Remove chats
+		// Remove documents
+
+		return null;
+	}),
 });
 
