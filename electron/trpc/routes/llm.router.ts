@@ -38,11 +38,19 @@ const genCandidateSchema = z.object({
 	text: z.string(),
 });
 
+async function generateOpenAIBearerConfig() {
+	const configuration = await config.get();
+	return configuration?.apiKeys?.openAIEndpoint
+		? { apiKey: configuration?.apiKeys?.openAIKey, basePath: configuration?.apiKeys?.openAIEndpoint }
+		: undefined; // no need setting for openAI configs
+}
+
 export const llmRouter = router({
 	genPromptCandidates: procedure
 		.input(genCandidateSchema)
 		.mutation(async ({ input }) => {
 			const configuration = await config.get();
+			const bearerConfig = await generateOpenAIBearerConfig();
 
 			const chat = new ChatOpenAI({
 				modelName: "gpt-4",
@@ -50,7 +58,7 @@ export const llmRouter = router({
 				streaming: false,
 				openAIApiKey: configuration?.apiKeys?.openAIKey,
 				n: input.count,
-			});
+			}, bearerConfig);
 
 			const rand = Date.now() % GENERATE_CANDIDATE_PROMPTS.length;
 			const system = SystemMessagePromptTemplate.fromTemplate(
@@ -70,13 +78,14 @@ export const llmRouter = router({
 		.input(completionSchema)
 		.mutation(async ({ input }) => {
 			const configuration = await config.get();
+			const bearerConfig = await generateOpenAIBearerConfig();
 
 			const chat = new ChatOpenAI({
 				modelName: input.modelName,
 				temperature: input.temperature,
 				streaming: input.streaming,
 				openAIApiKey: configuration?.apiKeys?.openAIKey,
-			});
+			}, bearerConfig);
 
 			const chain = new LLMChain({
 				llm: chat,
@@ -91,6 +100,8 @@ export const llmRouter = router({
 		.subscription(async ({ input, ctx }) => {
 			try {
 				const configuration = await config.get();
+				const bearerConfig = await generateOpenAIBearerConfig();
+
 				const template = await promptTemplate.getById(input.templateId);
 				const version = (template?.versions ?? []).find(
 					(v) => v._id === input.versionId,
@@ -147,7 +158,7 @@ export const llmRouter = router({
 					temperature,
 					streaming: true,
 					openAIApiKey: configuration?.apiKeys?.openAIKey,
-				});
+				}, bearerConfig);
 
 				const chain = new LLMChain({
 					llm: chat,
