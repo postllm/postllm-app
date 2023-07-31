@@ -8,8 +8,16 @@
 	},
 	"files": ["dist-electron/**/*", "dist/**/*", "build/**/*", "public/**/*"],
 	"mac": {
-		"artifactName": "${productName}_${version}.${ext}",
-		"target": ["dmg", "zip"]
+		"artifactName": "${productName}_${version}_${arch}.${ext}",
+		"target": [
+			{
+				"target": "default",
+				"arch": [
+				  "x64",
+				  "arm64"
+				]
+			}
+		]
 	},
 	"win": {
 		"target": [
