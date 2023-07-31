@@ -15,6 +15,7 @@ export const schema = BaseModelSchema.extend({
 	licenseValid: z.boolean().default(false),
 	apiKeys: z.object({
 		openAIKey: z.string().optional(),
+		openAIEndpoint: z.string().url().optional(),
 	}),
 });
 
