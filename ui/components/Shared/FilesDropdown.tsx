@@ -1,9 +1,9 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
-	BoxIcon,
 	CaretDownIcon,
-	CheckboxIcon,
 	PlusCircledIcon,
+	RadiobuttonIcon,
+	ValueIcon,
 } from "@radix-ui/react-icons";
 import { useCallback } from "react";
 import { twMerge } from "tailwind-merge";
@@ -106,9 +106,9 @@ export const FilesDropdown = ({
 								className="w-full flex px-4 py-2 text-left text-sm rounded hover:bg-zinc-100 hover:text-white dark:hover:bg-zinc-800 focus:outline-none cursor-pointer last:mb-4"
 							>
 								{selectedIds.includes(file._id) ? (
-									<CheckboxIcon className="inline-block mr-2" />
+									<RadiobuttonIcon className="inline-block mr-2" />
 								) : (
-									<BoxIcon className="inline-block mr-2" />
+									<ValueIcon className="inline-block mr-2" />
 								)}
 								<span>{file.name}</span>
 							</DropdownMenu.Item>

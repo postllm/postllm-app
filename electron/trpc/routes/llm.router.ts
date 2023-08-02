@@ -9,7 +9,7 @@ import {
 	HumanMessagePromptTemplate,
 	SystemMessagePromptTemplate,
 } from "langchain/prompts";
-import { FaissStore } from "langchain/vectorstores/faiss";
+import { HNSWLib } from "langchain/vectorstores/hnswlib";
 import { z } from "zod";
 import { GENERATE_CANDIDATE_PROMPTS } from "../../common/constants";
 import { getDataDirectory } from "../../common/database";
@@ -168,16 +168,18 @@ export const llmRouter = router({
 				if (template.fileIds.length > 0) {
 					const base = getDataDirectory();
 					const directory =
-						base + "/embeddings/" + template.fileIds[0];
+						base + "/embeddings/" + template.collectionId;
 
-					const vectorStore = await FaissStore.load(
+					const vectorStore = await HNSWLib.load(
 						directory,
 						embeddings,
 					);
 
 					chain2 = ConversationalRetrievalQAChain.fromLLM(
 						chat,
-						vectorStore.asRetriever(),
+						vectorStore.asRetriever(undefined, (doc) =>
+							template.fileIds.includes(doc.metadata.fileId),
+						),
 						{
 							questionGeneratorChainOptions: {
 								template: `

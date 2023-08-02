@@ -1,14 +1,22 @@
 import * as Accordion from "@radix-ui/react-accordion";
 import { CaretSortIcon, Cross2Icon, FileTextIcon } from "@radix-ui/react-icons";
 import { useCallback } from "react";
-import { useParams } from "react-router-dom";
 import { trpc } from "../../utils/trpc";
 import { Button } from "../Shared/Button";
 import { FilesDropdown } from "../Shared/FilesDropdown";
 import { SectionTitle } from "../Shared/SectionTitle";
 
-export const DocumentsBuilder = () => {
-	const { templateId, versionId, collectionId } = useParams();
+type TDocumentsBuilderProps = {
+	templateId: string;
+	versionId: string;
+	collectionId: string;
+};
+
+export const DocumentsBuilder = ({
+	templateId,
+	versionId,
+	collectionId,
+}: TDocumentsBuilderProps) => {
 	const utils = trpc.useContext();
 	const { data: files } = trpc.files.all.useQuery({
 		collectionId: collectionId as string,

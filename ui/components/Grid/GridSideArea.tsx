@@ -10,6 +10,7 @@ import { nanoid } from "nanoid";
 import { useCallback, useMemo, version } from "react";
 import { useParams } from "react-router-dom";
 import { trpc } from "../../utils/trpc";
+import { DocumentsBuilder } from "../Playground/DocumentsBuilder";
 import { LLMParameters } from "../Playground/LLMParameters";
 import { Button } from "../Shared/Button";
 import { Dropdown } from "../Shared/Dropdown";
@@ -351,6 +352,12 @@ export const GridSideArea = () => {
 						</div>
 					</div>
 				</div>
+
+				<DocumentsBuilder
+					templateId={templateId!}
+					versionId={versionId!}
+					collectionId={collecitonId!}
+				/>
 			</div>
 		</div>
 	);

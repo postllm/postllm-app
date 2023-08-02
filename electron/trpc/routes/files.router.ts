@@ -4,7 +4,7 @@ import { DocxLoader } from "langchain/document_loaders/fs/docx";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { TextLoader } from "langchain/document_loaders/fs/text";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
-import { FaissStore } from "langchain/vectorstores/faiss";
+import { HNSWLib } from "langchain/vectorstores/hnswlib";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { getDataDirectory } from "../../common/database";
@@ -50,6 +50,9 @@ export const filesRouter = router({
 		.output(file.schema)
 		.mutation(async ({ input, ctx }) => {
 			const configuration = await config.get();
+			const embeddings = new OpenAIEmbeddings({
+				openAIApiKey: configuration?.apiKeys?.openAIKey,
+			});
 
 			let loader: BaseDocumentLoader;
 			// Create docs with a loader
@@ -66,23 +69,24 @@ export const filesRouter = router({
 			}
 			const docs = await loader.load();
 
-			// Load the docs into the vector store
-			const vectorStore = await FaissStore.fromDocuments(
-				docs,
-				new OpenAIEmbeddings({
-					openAIApiKey: configuration?.apiKeys?.openAIKey,
-				}),
-			);
+			const fileId = nanoid();
+			for (const doc of docs) {
+				doc.metadata = { ...doc.metadata, fileId };
+			}
+
+			const base = getDataDirectory();
+			const directory = base + "/embeddings/" + input.collectionId;
+			const vectorStore = await HNSWLib.load(directory, embeddings);
+			vectorStore.addDocuments(docs);
 
 			const col = await file.create({
-				_id: nanoid(),
+				_id: fileId,
 				createdAt: Date.now(),
 				modifiedAt: Date.now(),
 				...input,
 			});
 			// Save the vector store to a directory
-			const base = getDataDirectory();
-			const directory = base + "/embeddings/" + col._id;
+
 			await vectorStore.save(directory);
 
 			return col;
