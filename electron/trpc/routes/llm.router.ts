@@ -1,15 +1,18 @@
 /* eslint-disable array-callback-return */
 import { observable } from "@trpc/server/observable";
-import { LLMChain } from "langchain/chains";
+import { ConversationalRetrievalQAChain, LLMChain } from "langchain/chains";
 import { ChatOpenAI } from "langchain/chat_models/openai";
+import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import {
 	AIMessagePromptTemplate,
 	ChatPromptTemplate,
 	HumanMessagePromptTemplate,
 	SystemMessagePromptTemplate,
 } from "langchain/prompts";
+import { FaissStore } from "langchain/vectorstores/faiss";
 import { z } from "zod";
 import { GENERATE_CANDIDATE_PROMPTS } from "../../common/constants";
+import { getDataDirectory } from "../../common/database";
 import { config, llm, promptTemplate } from "../../models";
 import { procedure, router } from "../trpc";
 
@@ -142,6 +145,9 @@ export const llmRouter = router({
 				const temperature =
 					input.llm?.temperature ?? template.settings.temperature;
 
+				const embeddings = new OpenAIEmbeddings({
+					openAIApiKey: configuration?.apiKeys?.openAIKey,
+				});
 				const chat = new ChatOpenAI({
 					modelName,
 					temperature,
@@ -157,8 +163,57 @@ export const llmRouter = router({
 					]),
 				});
 
+				let chain2: ConversationalRetrievalQAChain | undefined =
+					undefined;
+				if (template.fileIds.length > 0) {
+					const base = getDataDirectory();
+					const directory =
+						base + "/embeddings/" + template.fileIds[0];
+
+					const vectorStore = await FaissStore.load(
+						directory,
+						embeddings,
+					);
+
+					chain2 = ConversationalRetrievalQAChain.fromLLM(
+						chat,
+						vectorStore.asRetriever(),
+						{
+							questionGeneratorChainOptions: {
+								template: `
+								History:
+								{chat_history}
+								
+								Question: 
+								{question}
+								
+								Your answer:
+								`,
+							},
+						},
+					);
+
+					const history = [...messages, ...rest];
+					const last = history.pop();
+
+					variables["chat_history"] = (
+						await ChatPromptTemplate.fromPromptMessages(
+							history,
+						).formatMessages(variables)
+					)
+						.map((m) => `${m._getType()} ${m.content}`)
+						.join("\n");
+					variables["question"] = (
+						await ChatPromptTemplate.fromPromptMessages([
+							last!,
+						]).formatMessages(variables)
+					)
+						.map((m) => `${m._getType()} ${m.content}`)
+						.join("\n");
+				}
+
 				return observable((emit) => {
-					chain
+					(chain2 ?? chain)
 						.call(variables, [
 							{
 								handleLLMNewToken(token: string) {

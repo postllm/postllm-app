@@ -30,6 +30,7 @@ export const schema = BaseModelSchema.extend({
 	settings: llm.schema,
 	variables: z.record(z.string(), z.any()).optional(),
 	defaultVersionId: z.string().optional(),
+	fileIds: z.array(z.string()).optional().default([]),
 });
 
 export type IPromptTemplate = z.infer<typeof schema>;

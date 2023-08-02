@@ -71,7 +71,8 @@ const schema = import_base.BaseModelSchema.extend({
   versions: import_zod.z.array(templateVersionSchema),
   settings: llm.schema,
   variables: import_zod.z.record(import_zod.z.string(), import_zod.z.any()).optional(),
-  defaultVersionId: import_zod.z.string().optional()
+  defaultVersionId: import_zod.z.string().optional(),
+  fileIds: import_zod.z.array(import_zod.z.string()).optional().default([])
 });
 function init() {
   return {
