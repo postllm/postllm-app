@@ -8,9 +8,12 @@ import { trpc } from "../utils/trpc";
 export const PlaygroundPage = () => {
 	const { workspaceId, collectionId, templateId, versionId } = useParams();
 	const navigate = useNavigate();
-	const { data: template } = trpc.templates.get.useQuery({
-		id: templateId as string,
-	});
+	const { data: template } = trpc.templates.get.useQuery(
+		{
+			id: templateId as string,
+		},
+		{ enabled: !!templateId },
+	);
 
 	useEffect(() => {
 		if (!template) return;

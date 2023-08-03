@@ -109,9 +109,21 @@ const GridCell = ({
 	const [enabled, setEnabled] = useState<boolean>(false);
 	const [typing, setTyping] = useState<string>("");
 	const { mutate: addGridResult } = trpc.grids.addGridResult.useMutation();
+	const { data: grid } = trpc.grids.get.useQuery({
+		id: gridId as string,
+	});
+
+	console.log(grid);
 
 	trpc.llm.submit.useSubscription(
-		{ templateId, versionId, variables, llm, messages: [] },
+		{
+			templateId,
+			versionId,
+			variables,
+			llm,
+			messages: [],
+			fileIds: grid?.fileIds ?? [],
+		},
 		{
 			enabled,
 			onStarted() {
@@ -143,3 +155,4 @@ const GridCell = ({
 
 	return <div className="flex flex-col text-white">{typing}</div>;
 };
+

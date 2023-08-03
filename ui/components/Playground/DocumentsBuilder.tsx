@@ -1,55 +1,26 @@
 import * as Accordion from "@radix-ui/react-accordion";
 import { CaretSortIcon, Cross2Icon, FileTextIcon } from "@radix-ui/react-icons";
-import { useCallback } from "react";
 import { trpc } from "../../utils/trpc";
 import { Button } from "../Shared/Button";
 import { FilesDropdown } from "../Shared/FilesDropdown";
 import { SectionTitle } from "../Shared/SectionTitle";
 
 type TDocumentsBuilderProps = {
-	templateId: string;
-	versionId: string;
 	collectionId: string;
+	workspaceId: string;
+	fileIds: string[];
+	onToggleFile: (fileId: string) => void;
 };
 
 export const DocumentsBuilder = ({
-	templateId,
-	versionId,
 	collectionId,
+	workspaceId,
+	onToggleFile,
+	fileIds,
 }: TDocumentsBuilderProps) => {
-	const utils = trpc.useContext();
 	const { data: files } = trpc.files.all.useQuery({
 		collectionId: collectionId as string,
 	});
-	const { data: template } = trpc.templates.get.useQuery(
-		{
-			id: templateId as string,
-		},
-		{ enabled: !!templateId },
-	);
-	const { mutate: saveTemplate } = trpc.templates.update.useMutation({
-		onSuccess: () => {
-			utils.templates.get.invalidate({ id: templateId });
-			utils.templates.getVersion.invalidate({
-				id: templateId,
-				versionId,
-			});
-		},
-	});
-
-	const onFilesChange = useCallback(
-		async (fileId: string) => {
-			if (!template) return;
-
-			const list = [...template.fileIds] || [];
-			if (list.includes(fileId)) list.splice(list.indexOf(fileId), 1);
-			else list.push(fileId);
-
-			await saveTemplate({ ...template, fileIds: list });
-			utils.files.all.invalidate({ collectionId });
-		},
-		[template, saveTemplate],
-	);
 
 	return (
 		<div className="w-full my-2 text-center">
@@ -72,7 +43,7 @@ export const DocumentsBuilder = ({
 					<Accordion.AccordionContent>
 						<div>
 							<ul className="dark:divide-white/5 text-sm mb-5">
-								{(template?.fileIds ?? []).map((fileId) => {
+								{(fileIds ?? []).map((fileId) => {
 									const file = files?.find(
 										(f) => f._id === fileId,
 									);
@@ -88,7 +59,7 @@ export const DocumentsBuilder = ({
 												<div className="ml-auto">
 													<Button
 														onClick={() =>
-															onFilesChange(
+															onToggleFile(
 																file._id,
 															)
 														}
@@ -106,11 +77,11 @@ export const DocumentsBuilder = ({
 						</div>
 						<div className="m-auto mt-2">
 							<FilesDropdown
-								selectedIds={template?.fileIds || []}
-								collectionId={template?.collectionId as string}
-								workspaceId={template?.workspaceId as string}
+								selectedIds={fileIds || []}
+								collectionId={collectionId as string}
+								workspaceId={workspaceId as string}
 								label={"Add files"}
-								onChange={onFilesChange}
+								onChange={onToggleFile}
 							/>
 						</div>
 					</Accordion.AccordionContent>

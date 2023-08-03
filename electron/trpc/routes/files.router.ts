@@ -76,8 +76,17 @@ export const filesRouter = router({
 
 			const base = getDataDirectory();
 			const directory = base + "/embeddings/" + input.collectionId;
-			const vectorStore = await HNSWLib.load(directory, embeddings);
-			vectorStore.addDocuments(docs);
+			if (fs.existsSync(directory)) {
+				const vectorStore = await HNSWLib.load(directory, embeddings);
+				vectorStore.addDocuments(docs);
+				await vectorStore.save(directory);
+			} else {
+				const vectorStore = await HNSWLib.fromDocuments(
+					docs,
+					embeddings,
+				);
+				await vectorStore.save(directory);
+			}
 
 			const col = await file.create({
 				_id: fileId,
@@ -85,9 +94,6 @@ export const filesRouter = router({
 				modifiedAt: Date.now(),
 				...input,
 			});
-			// Save the vector store to a directory
-
-			await vectorStore.save(directory);
 
 			return col;
 		}),

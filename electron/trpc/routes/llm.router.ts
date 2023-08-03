@@ -27,6 +27,7 @@ const submitSchema = z.object({
 	),
 	variables: z.record(z.string(), z.any()).optional(),
 	llm: llm.schema.optional(),
+	fileIds: z.array(z.string()).optional().default([]),
 });
 
 const completionSchema = z.object({
@@ -165,7 +166,8 @@ export const llmRouter = router({
 
 				let chain2: ConversationalRetrievalQAChain | undefined =
 					undefined;
-				if (template.fileIds.length > 0) {
+				const fileIds = input.fileIds ?? [];
+				if (fileIds.length > 0) {
 					const base = getDataDirectory();
 					const directory =
 						base + "/embeddings/" + template.collectionId;
@@ -177,9 +179,9 @@ export const llmRouter = router({
 
 					chain2 = ConversationalRetrievalQAChain.fromLLM(
 						chat,
-						vectorStore.asRetriever(undefined, (doc) =>
-							template.fileIds.includes(doc.metadata.fileId),
-						),
+						vectorStore.asRetriever(undefined, (doc) => {
+							return fileIds.includes(doc.metadata.fileId);
+						}),
 						{
 							questionGeneratorChainOptions: {
 								template: `
@@ -203,14 +205,14 @@ export const llmRouter = router({
 							history,
 						).formatMessages(variables)
 					)
-						.map((m) => `${m._getType()} ${m.content}`)
+						.map((m) => `${m._getType()}: ${m.content}`)
 						.join("\n");
 					variables["question"] = (
 						await ChatPromptTemplate.fromPromptMessages([
 							last!,
 						]).formatMessages(variables)
 					)
-						.map((m) => `${m._getType()} ${m.content}`)
+						.map((m) => `${m._getType()}: ${m.content}`)
 						.join("\n");
 				}
 
