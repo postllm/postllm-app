@@ -1,9 +1,13 @@
-import { CaretSortIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
+import {
+	CaretSortIcon,
+	FileTextIcon,
+	PaperPlaneIcon,
+} from "@radix-ui/react-icons";
 import { useCallback, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useParams } from "react-router-dom";
 import { trpc } from "../../utils/trpc";
-import { Button } from "../Shared/Button";
+import { Button, IconButton } from "../Shared/Button";
 import { Dropdown } from "../Shared/Dropdown";
 import { TemplateMessage } from "./TemplateMessage";
 import { TemplateViewer } from "./TemplateViewer";
@@ -14,6 +18,8 @@ export const MainArea = () => {
 	const [typing, setTyping] = useState<string>("");
 	const [start, setStart] = useState<boolean>(false);
 	useHotkeys("mod+Enter", () => setStart(true), [start]);
+
+	const { mutateAsync: createChat } = trpc.chats.create.useMutation();
 
 	trpc.llm.submit.useSubscription(
 		{
@@ -52,6 +58,10 @@ export const MainArea = () => {
 		[],
 	);
 
+	const onCreateChat = useCallback(async () => {
+		await createChat();
+	}, []);
+
 	const onRemoveMessage = useCallback((index: number) => {
 		setMessages((prev) => prev.filter((_, i) => i < index));
 	}, []);
@@ -87,7 +97,10 @@ export const MainArea = () => {
 					)}
 				</div>
 				<div className="flex absolute w-full bottom-[67px] z-10">
-					<SubmitTemplateMessage onSubmit={onSubmitMessage} />
+					<SubmitTemplateMessage
+						onSubmit={onSubmitMessage}
+						onCreateChat={onCreateChat}
+					/>
 				</div>
 			</div>
 		</div>
@@ -102,9 +115,13 @@ const OPTIONS = [
 
 type TSubmitTemplateMessageProps = {
 	onSubmit: (role: string, message: string) => void;
+	onCreateChat?: () => void;
 };
 
-const SubmitTemplateMessage = ({ onSubmit }: TSubmitTemplateMessageProps) => {
+const SubmitTemplateMessage = ({
+	onSubmit,
+	onCreateChat,
+}: TSubmitTemplateMessageProps) => {
 	const [role, setRole] = useState<string>("user");
 	const [message, setMessage] = useState<string>("");
 	useHotkeys("mod+Enter", () => onButtonClick(), [message, role], {
@@ -112,7 +129,6 @@ const SubmitTemplateMessage = ({ onSubmit }: TSubmitTemplateMessageProps) => {
 	});
 
 	const onButtonClick = useCallback(() => {
-		console.log(message);
 		onSubmit(role, message);
 		setMessage("");
 	}, [message, onSubmit, role]);
@@ -138,12 +154,20 @@ const SubmitTemplateMessage = ({ onSubmit }: TSubmitTemplateMessageProps) => {
 						value={message}
 						onChange={(e) => setMessage(e.target.value)}
 					/>
-					<Button
-						primary
-						onClick={onButtonClick}
-						text="Submit"
-						leftIcon={<PaperPlaneIcon className="w-6 h-6" />}
-					/>
+					<div className="flex gap-2">
+						<Button
+							primary
+							onClick={onButtonClick}
+							text="Submit"
+							leftIcon={<PaperPlaneIcon className="w-3 h-3" />}
+						/>
+						{onCreateChat && (
+							<IconButton
+								onClick={onCreateChat}
+								leftIcon={<FileTextIcon className="w-3 h-3" />}
+							/>
+						)}
+					</div>
 				</div>
 			</div>
 		</div>

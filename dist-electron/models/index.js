@@ -28,6 +28,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var stdin_exports = {};
 __export(stdin_exports, {
   all: () => all,
+  chat: () => chat,
   collection: () => collection,
   config: () => config,
   getModel: () => getModel,
@@ -40,6 +41,7 @@ __export(stdin_exports, {
 });
 module.exports = __toCommonJS(stdin_exports);
 var import_nanoid = require("nanoid");
+var _chat = __toESM(require("./chat"));
 var _collection = __toESM(require("./collection"));
 var _config = __toESM(require("./config"));
 var _grid = __toESM(require("./grid"));
@@ -52,8 +54,17 @@ const workspace = _workspace;
 const config = _config;
 const grid = _grid;
 const llm = _llm;
+const chat = _chat;
 function all() {
-  return [_promptTemplate, _collection, _workspace, _config, _grid, _llm];
+  return [
+    _promptTemplate,
+    _collection,
+    _workspace,
+    _config,
+    _grid,
+    _llm,
+    _chat
+  ];
 }
 function types() {
   return all().map((model) => model.type);

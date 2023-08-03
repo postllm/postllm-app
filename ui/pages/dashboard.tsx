@@ -43,6 +43,9 @@ export const DashboardPage = () => {
 	const { data: collection } = trpc.collections.get.useQuery({
 		id: `${collectionId}`,
 	});
+	const { data: chats } = trpc.chats.all.useQuery({
+		collectionId: `${collectionId}`,
+	});
 	const { mutateAsync: deletePrompt } = trpc.templates.delete.useMutation();
 	const { mutateAsync: clonePrompt } = trpc.templates.clone.useMutation();
 	const { mutateAsync: deleteGrid } = trpc.grids.delete.useMutation();
@@ -87,7 +90,11 @@ export const DashboardPage = () => {
 		[collection],
 	);
 
-	const entities = [...(templates ?? []), ...(grids ?? [])].filter((e) => {
+	const entities = [
+		...(templates ?? []),
+		...(grids ?? []),
+		...(chats ?? []),
+	].filter((e) => {
 		if (!filter) return true;
 		if (filter) return e.type === filter;
 	});

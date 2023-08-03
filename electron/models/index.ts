@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { IBaseModel } from "./base";
+import * as _chat from "./chat";
 import * as _collection from "./collection";
 import * as _config from "./config";
 import * as _grid from "./grid";
@@ -7,16 +8,24 @@ import * as _llm from "./llm";
 import * as _promptTemplate from "./prompt-template";
 import * as _workspace from "./workspace";
 
-
 export const promptTemplate = _promptTemplate;
 export const collection = _collection;
 export const workspace = _workspace;
 export const config = _config;
 export const grid = _grid;
 export const llm = _llm;
+export const chat = _chat;
 
 export function all() {
-	return [_promptTemplate, _collection, _workspace, _config, _grid, _llm] as const;
+	return [
+		_promptTemplate,
+		_collection,
+		_workspace,
+		_config,
+		_grid,
+		_llm,
+		_chat,
+	] as const;
 }
 
 export function types() {
