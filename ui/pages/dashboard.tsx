@@ -1,12 +1,10 @@
 import {
 	BackpackIcon,
 	BookmarkFilledIcon,
-	ChatBubbleIcon,
 	ClockIcon,
 	DotsVerticalIcon,
 	FileTextIcon,
 	PlusCircledIcon,
-	ViewGridIcon,
 } from "@radix-ui/react-icons";
 import { useCallback, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -16,6 +14,7 @@ import { CreateCollectionModal } from "../components/Modals/CreateCollectionModa
 import { RenameCollectionModal } from "../components/Modals/RenameCollectionModal";
 import { WarningBanner } from "../components/Shared/Banner";
 import { Dropdown } from "../components/Shared/Dropdown";
+import EntityIcon from "../components/Shared/EntityIcon";
 import { SectionTitle } from "../components/Shared/SectionTitle";
 import { timeAgo } from "../utils/timeAgo";
 import { trpc } from "../utils/trpc";
@@ -40,6 +39,9 @@ export const DashboardPage = () => {
 	const { data: collections } = trpc.collections.all.useQuery({
 		workspaceId: `${workspaceId}`,
 	});
+	const { data: files } = trpc.files.all.useQuery({
+		collectionId: `${collectionId}`,
+	});
 	const { data: collection } = trpc.collections.get.useQuery({
 		id: `${collectionId}`,
 	});
@@ -48,6 +50,7 @@ export const DashboardPage = () => {
 	});
 	const { mutateAsync: deletePrompt } = trpc.templates.delete.useMutation();
 	const { mutateAsync: clonePrompt } = trpc.templates.clone.useMutation();
+	const { mutateAsync: deleteFile } = trpc.files.delete.useMutation();
 	const { mutateAsync: deleteGrid } = trpc.grids.delete.useMutation();
 	const { mutateAsync: deleteCollection } =
 		trpc.collections.delete.useMutation();
@@ -57,6 +60,7 @@ export const DashboardPage = () => {
 			if (action === "delete") {
 				if (type === "Template") await deletePrompt({ id });
 				if (type === "Grid") await deleteGrid({ id });
+				if (type === "File") await deleteFile({ id });
 			}
 
 			if (action === "clone") {
@@ -64,6 +68,7 @@ export const DashboardPage = () => {
 			}
 			utils.templates.all.invalidate();
 			utils.grids.all.invalidate();
+			utils.files.all.invalidate();
 		},
 		[clonePrompt, deletePrompt, utils],
 	);
@@ -94,6 +99,7 @@ export const DashboardPage = () => {
 		...(templates ?? []),
 		...(grids ?? []),
 		...(chats ?? []),
+		...(files ?? []),
 	].filter((e) => {
 		if (!filter) return true;
 		if (filter) return e.type === filter;
@@ -189,7 +195,10 @@ export const DashboardPage = () => {
 									className="pl-6"
 								>
 									<span className="flex">
-										<ViewGridIcon className="mr-2 text-rose-400" />{" "}
+										<EntityIcon
+											entity={{ type: "Grid" }}
+											className="mr-2 "
+										/>{" "}
 										Compare Prompts
 									</span>
 								</NavLink>
@@ -199,7 +208,10 @@ export const DashboardPage = () => {
 									className="pl-6"
 								>
 									<span className="flex">
-										<ChatBubbleIcon className="mr-2 text-blue-400" />{" "}
+										<EntityIcon
+											entity={{ type: "Chat" }}
+											className="mr-2 "
+										/>{" "}
 										Chats (Coming soon)
 									</span>
 								</NavLink>
@@ -209,8 +221,11 @@ export const DashboardPage = () => {
 									className="pl-6"
 								>
 									<span className="flex">
-										<FileTextIcon className="mr-2 text-purple-400" />{" "}
-										Files (Coming soon)
+										<EntityIcon
+											entity={{ type: "File" }}
+											className="mr-2 "
+										/>{" "}
+										Files
 									</span>
 								</NavLink>
 							</ul>
@@ -232,11 +247,10 @@ export const DashboardPage = () => {
 							}`}
 							time={entity.modifiedAt}
 							icon={
-								entity.type === "Grid" ? (
-									<ViewGridIcon className="mr-2 mt-[5px] text-rose-400" />
-								) : (
-									<BookmarkFilledIcon className="mr-2 mt-[5px] text-emerald-400" />
-								)
+								<EntityIcon
+									entity={entity}
+									className="mr-2 mt-[5px]"
+								/>
 							}
 							dropdown={
 								<Dropdown
@@ -332,9 +346,13 @@ function Card({ icon, title, href, time, description, dropdown }: TCardProps) {
 			)}
 		>
 			<div className="relative rounded-2xl px-4 pb-0 pt-4 overflow-hidden w-full">
-				<h3 className="mt-1 text-sm font-semibold leading-7 text-zinc-900 dark:text-white">
+				<h3
+					title={title}
+					className="mt-1 text-sm font-semibold leading-7 text-zinc-900 dark:text-white"
+				>
 					<span className="flex">
-						{icon} {title}
+						<span>{icon}</span>
+						<span className="overflow-hidden">{title}</span>
 					</span>
 				</h3>
 				<p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400 truncate">

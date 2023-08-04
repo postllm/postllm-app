@@ -238,7 +238,11 @@ const database = {
     db[doc.type].remove({ _id: doc._id });
   },
   update: async function(doc, fromSync = false) {
-    return await db[doc.type].updateAsync({ _id: doc._id }, { ...doc, modifiedAt: Date.now() }, { upsert: true, returnUpdatedDocs: true });
+    return await db[doc.type].updateAsync(
+      { _id: doc._id },
+      { ...doc, modifiedAt: Date.now() },
+      { upsert: true, returnUpdatedDocs: true }
+    );
   },
   withAncestors: async function(doc, types = allTypes()) {
     if (db._empty) {
@@ -301,7 +305,7 @@ function getDBFilePath(modelType) {
 }
 function getDataDirectory() {
   const { app } = process.type === "renderer" ? window : electron;
-  return process.env["INSOMNIA_DATA_PATH"] || app.getPath("userData");
+  return process.env["POSTLLM_DATA_PATH"] || app.getPath("userData");
 }
 async function _send(fnName, ...args) {
   return new Promise((resolve, reject) => {

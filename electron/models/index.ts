@@ -3,6 +3,7 @@ import { IBaseModel } from "./base";
 import * as _chat from "./chat";
 import * as _collection from "./collection";
 import * as _config from "./config";
+import * as _file from "./file";
 import * as _grid from "./grid";
 import * as _llm from "./llm";
 import * as _promptTemplate from "./prompt-template";
@@ -15,6 +16,7 @@ export const config = _config;
 export const grid = _grid;
 export const llm = _llm;
 export const chat = _chat;
+export const file = _file;
 
 export function all() {
 	return [
@@ -25,6 +27,7 @@ export function all() {
 		_grid,
 		_llm,
 		_chat,
+		_file,
 	] as const;
 }
 

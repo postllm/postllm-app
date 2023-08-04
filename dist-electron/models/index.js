@@ -31,6 +31,7 @@ __export(stdin_exports, {
   chat: () => chat,
   collection: () => collection,
   config: () => config,
+  file: () => file,
   getModel: () => getModel,
   grid: () => grid,
   initModel: () => initModel,
@@ -44,6 +45,7 @@ var import_nanoid = require("nanoid");
 var _chat = __toESM(require("./chat"));
 var _collection = __toESM(require("./collection"));
 var _config = __toESM(require("./config"));
+var _file = __toESM(require("./file"));
 var _grid = __toESM(require("./grid"));
 var _llm = __toESM(require("./llm"));
 var _promptTemplate = __toESM(require("./prompt-template"));
@@ -54,7 +56,11 @@ const workspace = _workspace;
 const config = _config;
 const grid = _grid;
 const llm = _llm;
+<<<<<<< HEAD
 const chat = _chat;
+=======
+const file = _file;
+>>>>>>> main
 function all() {
   return [
     _promptTemplate,
@@ -63,7 +69,11 @@ function all() {
     _config,
     _grid,
     _llm,
+<<<<<<< HEAD
     _chat
+=======
+    _file
+>>>>>>> main
   ];
 }
 function types() {

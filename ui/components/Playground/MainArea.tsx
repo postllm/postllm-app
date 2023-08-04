@@ -18,6 +18,12 @@ export const MainArea = () => {
 	const [typing, setTyping] = useState<string>("");
 	const [start, setStart] = useState<boolean>(false);
 	useHotkeys("mod+Enter", () => setStart(true), [start]);
+	const { data: template } = trpc.templates.get.useQuery(
+		{
+			id: templateId as string,
+		},
+		{ enabled: !!templateId },
+	);
 
 	const { mutateAsync: createChat } = trpc.chats.create.useMutation();
 
@@ -26,6 +32,7 @@ export const MainArea = () => {
 			templateId: templateId as string,
 			versionId: versionId as string,
 			messages,
+			fileIds: template?.fileIds ?? [],
 		},
 		{
 			enabled: start,
