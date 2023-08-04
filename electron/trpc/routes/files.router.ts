@@ -101,11 +101,6 @@ export const filesRouter = router({
 		const doc = await file.getById(input.id);
 		if (!doc) return;
 
-		const base = getDataDirectory();
-		const directory = base + "/embeddings/" + doc._id;
-		if (fs.existsSync(directory))
-			fs.rmdirSync(directory, { recursive: true });
-
 		await file.remove(doc);
 
 		return null;
