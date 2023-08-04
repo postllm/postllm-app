@@ -30,6 +30,7 @@ __export(stdin_exports, {
   all: () => all,
   collection: () => collection,
   config: () => config,
+  file: () => file,
   getModel: () => getModel,
   grid: () => grid,
   initModel: () => initModel,
@@ -42,6 +43,7 @@ module.exports = __toCommonJS(stdin_exports);
 var import_nanoid = require("nanoid");
 var _collection = __toESM(require("./collection"));
 var _config = __toESM(require("./config"));
+var _file = __toESM(require("./file"));
 var _grid = __toESM(require("./grid"));
 var _llm = __toESM(require("./llm"));
 var _promptTemplate = __toESM(require("./prompt-template"));
@@ -52,8 +54,17 @@ const workspace = _workspace;
 const config = _config;
 const grid = _grid;
 const llm = _llm;
+const file = _file;
 function all() {
-  return [_promptTemplate, _collection, _workspace, _config, _grid, _llm];
+  return [
+    _promptTemplate,
+    _collection,
+    _workspace,
+    _config,
+    _grid,
+    _llm,
+    _file
+  ];
 }
 function types() {
   return all().map((model) => model.type);

@@ -295,7 +295,11 @@ export const database = {
 	},
 
 	update: async function <T extends IBaseModel>(doc: T, fromSync = false) {
-		return await (db[doc.type] as NeDB<T>).updateAsync({_id: doc._id}, {...doc, modifiedAt: Date.now()}, {upsert: true, returnUpdatedDocs: true});
+		return await (db[doc.type] as NeDB<T>).updateAsync(
+			{ _id: doc._id },
+			{ ...doc, modifiedAt: Date.now() },
+			{ upsert: true, returnUpdatedDocs: true },
+		);
 	},
 
 	withAncestors: async function <T extends IBaseModel>(
@@ -346,7 +350,9 @@ export const database = {
 		}
 		let docsToReturn: IBaseModel[] = doc ? [doc] : [];
 
-		async function next(docs: (IBaseModel | null)[]): Promise<IBaseModel[]> {
+		async function next(
+			docs: (IBaseModel | null)[],
+		): Promise<IBaseModel[]> {
 			let foundDocs: IBaseModel[] = [];
 
 			for (const doc of docs) {
@@ -400,7 +406,7 @@ function getDBFilePath(modelType: string) {
 export function getDataDirectory() {
 	// @ts-ignore
 	const { app } = process.type === "renderer" ? window : electron;
-	return process.env["INSOMNIA_DATA_PATH"] || app.getPath("userData");
+	return process.env["POSTLLM_DATA_PATH"] || app.getPath("userData");
 }
 
 // ~~~~~~~ //

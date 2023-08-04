@@ -10,6 +10,7 @@ import { nanoid } from "nanoid";
 import { useCallback, useMemo, version } from "react";
 import { useParams } from "react-router-dom";
 import { trpc } from "../../utils/trpc";
+import { DocumentsBuilder } from "../Playground/DocumentsBuilder";
 import { LLMParameters } from "../Playground/LLMParameters";
 import { Button } from "../Shared/Button";
 import { Dropdown } from "../Shared/Dropdown";
@@ -18,7 +19,7 @@ import { VariablesSection } from "../Shared/VariablesSection";
 import { TemplateVersionsDropdown } from "./TemplateVersionsDropdown";
 
 export const GridSideArea = () => {
-	const { collectionId, gridId } = useParams();
+	const { collectionId, workspaceId, gridId } = useParams();
 	const utils = trpc.useContext();
 	const { data: templates } = trpc.templates.all.useQuery({
 		collectionId: collectionId as string,
@@ -42,6 +43,19 @@ export const GridSideArea = () => {
 			return s;
 		}, new Set());
 	}, [grid, templates]);
+
+	const onToggleFile = useCallback(async (fileId: string) => {
+		if (!grid) return;
+
+		let fileIds = grid.fileIds ?? [];
+		if (fileIds.includes(fileId))
+			fileIds = fileIds.filter((id) => id !== fileId);
+		else fileIds.push(fileId);
+
+		await updateGrid({ ...grid, fileIds });
+
+		utils.grids.get.invalidate({ id: gridId as string });
+	}, []);
 
 	const onVersionChange = useCallback(
 		async (templateId: string, versionId: string) => {
@@ -351,6 +365,13 @@ export const GridSideArea = () => {
 						</div>
 					</div>
 				</div>
+
+				<DocumentsBuilder
+					collectionId={collectionId!}
+					workspaceId={workspaceId!}
+					fileIds={grid?.fileIds || []}
+					onToggleFile={onToggleFile}
+				/>
 			</div>
 		</div>
 	);
