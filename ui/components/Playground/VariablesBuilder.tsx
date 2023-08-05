@@ -1,73 +1,57 @@
 import * as Accordion from "@radix-ui/react-accordion";
 import { CaretSortIcon, CodeIcon } from "@radix-ui/react-icons";
 import { useCallback, useMemo } from "react";
-import { useParams } from "react-router-dom";
-import { trpc } from "../../utils/trpc";
 import { SectionTitle } from "../Shared/SectionTitle";
 import { VariablesSection } from "../Shared/VariablesSection";
 import { LLMParameters } from "./LLMParameters";
 
-export const VariablesBuilder = () => {
-	const { templateId, versionId } = useParams();
-	const utils = trpc.useContext();
-	const { data: version } = trpc.templates.getVersion.useQuery(
-		{
-			id: templateId as string,
-			versionId: versionId as string,
-		},
-		{ enabled: !!templateId && !!versionId },
-	);
-	const { data: template } = trpc.templates.get.useQuery(
-		{
-			id: templateId as string,
-		},
-		{ enabled: !!templateId },
-	);
-	const { mutate: saveTemplate } = trpc.templates.update.useMutation({
-		onSuccess: () => {
-			utils.templates.get.invalidate({ id: templateId });
-			utils.templates.getVersion.invalidate({ id: templateId, versionId });
-		},
-	});
+type TVariablesBuilderProps = {
+	entity: any;
+	onUpdateEntity: (entity: any) => void;
+	messages: any[];
+};
 
+export const VariablesBuilder = ({
+	entity,
+	onUpdateEntity,
+	messages,
+}: TVariablesBuilderProps) => {
 	const variables = useMemo(() => {
-		if (!version) return [];
-		return version.messages.reduce((acc, message) => {
+		if (!entity) return [];
+		return (messages ?? []).reduce((acc, message) => {
 			const s = new Set([...acc, ...message.inputVariables.flat()]);
 			return s;
 		}, new Set());
-	}, [version]);
+	}, [entity]);
 
 	const onChangeVariable = useCallback(
 		async (key: string, value: string) => {
-			if (!template) return;
+			if (!entity) return;
 
-			await saveTemplate({
-				...template,
+			await onUpdateEntity({
+				...entity,
 				variables: {
-					...template?.variables,
+					...entity?.variables,
 					[key]: value,
 				},
 			});
-			utils.templates.get.invalidate({ id: templateId });
 		},
-		[saveTemplate, version, template?.modifiedAt],
+		[entity?.modifiedAt, onUpdateEntity],
 	);
 
 	const onLLMChange = useCallback(
 		async (key: string, value: any) => {
-			if (!template) return;
+			if (!entity) return;
 
-			await saveTemplate({
-				...template,
+			await onUpdateEntity({
+				...entity,
 				settings: {
-					...template.settings,
+					...entity.settings,
 					[key]: value,
 				},
 			});
-			utils.templates.get.invalidate({ id: templateId });
 		},
-		[saveTemplate, version, template?.modifiedAt],
+		[entity?.modifiedAt, onUpdateEntity],
 	);
 
 	return (
@@ -95,21 +79,19 @@ export const VariablesBuilder = () => {
 									key={variable}
 									varName={variable}
 									// @ts-ignore
-									value={
-										template?.variables?.[variable] || ""
-									}
+									value={entity?.variables?.[variable] || ""}
 									onChange={(val) =>
 										onChangeVariable(variable, val)
 									}
 								/>
 							),
 						)}
-						{template?.settings && (
+						{entity?.settings && (
 							<LLMParameters
-								key={template?.modifiedAt}
+								key={entity?.modifiedAt}
 								onChange={onLLMChange}
-								modelName={template.settings.modelName}
-								temperature={template.settings.temperature}
+								modelName={entity.settings.modelName}
+								temperature={entity.settings.temperature}
 							/>
 						)}
 					</Accordion.AccordionContent>

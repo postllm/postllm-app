@@ -6,7 +6,7 @@ import { TemplateBuilder } from "./TemplateBuilder";
 import { VariablesBuilder } from "./VariablesBuilder";
 
 export const SideArea = () => {
-	const { templateId, collectionId } = useParams();
+	const { templateId, versionId, collectionId } = useParams();
 	const utils = trpc.useContext();
 	const { data: template } = trpc.templates.get.useQuery(
 		{
@@ -14,7 +14,13 @@ export const SideArea = () => {
 		},
 		{ enabled: !!templateId },
 	);
-
+	const { data: version } = trpc.templates.getVersion.useQuery(
+		{
+			id: templateId as string,
+			versionId: versionId as string,
+		},
+		{ enabled: !!templateId && !!versionId },
+	);
 	const { mutate: saveTemplate } = trpc.templates.update.useMutation({
 		onSuccess: () => {
 			utils.templates.get.invalidate({ id: templateId });
@@ -35,12 +41,34 @@ export const SideArea = () => {
 		[template, templateId, saveTemplate],
 	);
 
+	const onChatUpdate = useCallback(
+		async (patch: Record<any, any>) => {
+			// @ts-ignore
+			await saveTemplate({
+				...template,
+				...patch,
+			});
+			utils.chats.get.invalidate({ id: templateId });
+			utils.templates.getVersion.invalidate({
+				id: templateId,
+				versionId,
+			});
+		},
+		[template, saveTemplate, versionId],
+	);
+
 	return (
 		<div className="grid grid-rows-[minmax(0,1fr),auto] !overflow-auto border-r border-white/10 min-w-[350px] h-screen">
 			<div className="overflow-y-auto pt-2 mb-[80px]">
 				<div>
 					<TemplateBuilder />
-					<VariablesBuilder />
+					{template && version && (
+						<VariablesBuilder
+							entity={template}
+							onUpdateEntity={onChatUpdate}
+							messages={version.messages}
+						/>
+					)}
 					<DocumentsBuilder
 						collectionId={collectionId!}
 						workspaceId={template?.workspaceId!}

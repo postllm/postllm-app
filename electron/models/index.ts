@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { IBaseModel } from "./base";
+import * as _chat from "./chat";
 import * as _collection from "./collection";
 import * as _config from "./config";
 import * as _file from "./file";
@@ -14,6 +15,7 @@ export const workspace = _workspace;
 export const config = _config;
 export const grid = _grid;
 export const llm = _llm;
+export const chat = _chat;
 export const file = _file;
 
 export function all() {
@@ -24,6 +26,7 @@ export function all() {
 		_config,
 		_grid,
 		_llm,
+		_chat,
 		_file,
 	] as const;
 }

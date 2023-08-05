@@ -1,14 +1,20 @@
 import { FC } from "react";
-import { HashRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
+import {
+	HashRouter,
+	Navigate,
+	Route,
+	Routes,
+	useParams,
+} from "react-router-dom";
+import { ChatPage } from "./pages/chat";
 import { DashboardPage } from "./pages/dashboard";
 import { GridPage } from "./pages/grid";
 import { PlaygroundPage } from "./pages/playground";
 
 const NotFound = () => {
-	const params = useParams(	);
+	const params = useParams();
 	return <div>Not found</div>;
-}
-
+};
 
 export const Router: FC = () => {
 	return (
@@ -30,8 +36,12 @@ export const Router: FC = () => {
 						element={<GridPage />}
 					/>
 					<Route
-						path="workspaces/:workspaceId/dashboard/:collectionId/templates/:templateId/:versionId?"
+						path="workspaces/:workspaceId/dashboard/:collectionId/templates/:templateId/:versionId?/:chatId?"
 						element={<PlaygroundPage />}
+					/>
+					<Route
+						path="workspaces/:workspaceId/dashboard/:collectionId/chats/:chatId"
+						element={<ChatPage />}
 					/>
 				</Route>
 			</Routes>

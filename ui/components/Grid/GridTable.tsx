@@ -123,6 +123,8 @@ const GridCell = ({
 			llm,
 			messages: [],
 			fileIds: grid?.fileIds ?? [],
+			collectionId: grid?.collectionId!,
+			workspaceId: grid?.workspaceId!,
 		},
 		{
 			enabled,

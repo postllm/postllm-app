@@ -17,8 +17,10 @@ import { config, llm, promptTemplate } from "../../models";
 import { procedure, router } from "../trpc";
 
 const submitSchema = z.object({
-	templateId: z.string(),
-	versionId: z.string(),
+	collectionId: z.string(),
+	workspaceId: z.string(),
+	templateId: z.string().optional(),
+	versionId: z.string().optional(),
 	messages: z.array(
 		z.object({
 			prompt: z.string(),
@@ -95,16 +97,15 @@ export const llmRouter = router({
 		.subscription(async ({ input, ctx }) => {
 			try {
 				const configuration = await config.get();
-				const template = await promptTemplate.getById(input.templateId);
+				const template = await promptTemplate.getById(
+					input.templateId ?? "0",
+				);
 				const version = (template?.versions ?? []).find(
 					(v) => v._id === input.versionId,
 				);
 
-				if (!template || !version)
-					throw new Error("Template or version not found");
-
-				const variables = input.variables ?? template.variables ?? {};
-				let messages = version.messages.map((m) => {
+				const variables = input.variables ?? template?.variables ?? {};
+				let messages = (version?.messages ?? []).map((m) => {
 					const cleaned = cleanPrompt(m.prompt, variables);
 					switch (m.role) {
 						case "user":
@@ -142,9 +143,9 @@ export const llmRouter = router({
 				});
 
 				const modelName =
-					input.llm?.modelName ?? template.settings.modelName;
+					input.llm?.modelName ?? template?.settings.modelName;
 				const temperature =
-					input.llm?.temperature ?? template.settings.temperature;
+					input.llm?.temperature ?? template?.settings.temperature;
 
 				const embeddings = new OpenAIEmbeddings({
 					openAIApiKey: configuration?.apiKeys?.openAIKey,
@@ -170,7 +171,7 @@ export const llmRouter = router({
 				if (fileIds.length > 0) {
 					const base = getDataDirectory();
 					const directory =
-						base + "/embeddings/" + template.collectionId;
+						base + "/embeddings/" + input.collectionId;
 
 					const vectorStore = await HNSWLib.load(
 						directory,

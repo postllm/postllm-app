@@ -1,17 +1,49 @@
 import { CaretDownIcon, PlusIcon } from "@radix-ui/react-icons";
+import { nanoid } from "nanoid";
 import { useCallback, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
+import { trpc } from "../../utils/trpc";
 import { CreateGridModal } from "../Modals/CreateGridModal";
 import { CreatePromptTemplate } from "../Modals/CreatePromptTemplateModal";
 import { Dropdown } from "./Dropdown";
 
-// React component
 export const TopNavBar = () => {
-	const [showModal, setShowModal] = useState<"prompt" | "grid" | null>();
+	const { collectionId, workspaceId } = useParams();
+	const navigate = useNavigate();
+	const { mutateAsync: createChat } = trpc.chats.create.useMutation();
+	const [showModal, setShowModal] = useState<
+		"prompt" | "grid" | "chat" | null
+	>();
 
-	const onDropdownChange = useCallback((value: any) => {
-		setShowModal(value);
-	}, []);
+	const onDropdownChange = useCallback(
+		async (value: any) => {
+			if (!collectionId || !workspaceId) return;
+
+			if (value === "chat") {
+				const chat = await createChat({
+					collectionId: collectionId,
+					workspaceId: workspaceId,
+					messages: [],
+					fileIds: [],
+					_id: nanoid(),
+					type: "Chat",
+					modifiedAt: Date.now(),
+					createdAt: Date.now(),
+					name: `New Chat`,
+					settings: {},
+				});
+
+				navigate(
+					`/workspaces/${chat.workspaceId}/dashboard/${chat.collectionId}/chats/${chat._id}`,
+				);
+				return;
+			}
+
+			setShowModal(value);
+		},
+		[collectionId, workspaceId],
+	);
 
 	return (
 		<div
@@ -47,13 +79,15 @@ export const TopNavBar = () => {
 						options={[
 							{ key: "prompt", value: "Prompt Template" },
 							{ key: "grid", value: "Compare Prompts" },
+							{ key: "chat", value: "Chat" },
 						]}
 					/>
 				</div>
 			</div>
-			{showModal === "prompt" && (<CreatePromptTemplate open={!!showModal} />)}
-			{showModal === "grid" && (<CreateGridModal open={!!showModal} />)}
-
+			{showModal === "prompt" && (
+				<CreatePromptTemplate open={!!showModal} />
+			)}
+			{showModal === "grid" && <CreateGridModal open={!!showModal} />}
 		</div>
 	);
 };
