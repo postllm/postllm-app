@@ -1,4 +1,5 @@
 /* eslint-disable array-callback-return */
+import { nanoid } from "nanoid";
 import { z } from "zod";
 import { chat } from "../../models";
 import { procedure, router } from "../trpc";
@@ -33,6 +34,32 @@ export const chatsRouter = router({
 		const data = await chat.update(input);
 		return data;
 	}),
+	addNewMessage: procedure
+		.input(
+			z.object({
+				id: z.string(),
+				role: z.enum(["user", "system", "assistant"]),
+				prompt: z.string(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const data = await chat.getById(input.id);
+			if (!data) return null;
+
+			return await chat.update({
+				...data,
+				modifiedAt: Date.now(),
+				messages: [
+					...data.messages,
+					{
+						_id: nanoid(),
+						role: input.role!,
+						prompt: input.prompt,
+						inputVariables: [],
+					},
+				],
+			});
+		}),
 	delete: procedure.input(inputSchema).mutation(async ({ input, ctx }) => {
 		const data = await chat.getById(input.id);
 		if (!data) return null;

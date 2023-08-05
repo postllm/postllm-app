@@ -56,11 +56,8 @@ const workspace = _workspace;
 const config = _config;
 const grid = _grid;
 const llm = _llm;
-<<<<<<< HEAD
 const chat = _chat;
-=======
 const file = _file;
->>>>>>> main
 function all() {
   return [
     _promptTemplate,
@@ -69,11 +66,8 @@ function all() {
     _config,
     _grid,
     _llm,
-<<<<<<< HEAD
-    _chat
-=======
+    _chat,
     _file
->>>>>>> main
   ];
 }
 function types() {

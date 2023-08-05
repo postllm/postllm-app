@@ -22,6 +22,7 @@ export const schema = BaseModelSchema.extend({
 			inputVariables: z.array(z.string()),
 		}),
 	),
+	fileIds: z.array(z.string()).default([]),
 });
 
 export type IChat = z.infer<typeof schema>;

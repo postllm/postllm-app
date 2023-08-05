@@ -4,39 +4,53 @@ import {
 	PaperPlaneIcon,
 } from "@radix-ui/react-icons";
 import { nanoid } from "nanoid";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useNavigate, useParams } from "react-router-dom";
 import { trpc } from "../../utils/trpc";
+import { TemplateMessage } from "../Playground/TemplateMessage";
 import { Button, IconButton } from "../Shared/Button";
 import { Dropdown } from "../Shared/Dropdown";
-import { TemplateMessage } from "./TemplateMessage";
-import { TemplateViewer } from "./TemplateViewer";
 
-export const MainArea = () => {
-	const { templateId, versionId } = useParams();
+type TMessage = {
+	_id: string;
+	role: "user" | "system" | "assistant" | string;
+	prompt: string;
+	inputVariables: string[];
+};
+
+export const ChatMainArea = () => {
+	const { chatId } = useParams();
 	const navigate = useNavigate();
-	const [messages, setMessages] = useState<any[]>([]);
+	const utils = trpc.useContext();
+	const [messages, setMessages] = useState<TMessage[]>([]);
 	const [typing, setTyping] = useState<string>("");
 	const [start, setStart] = useState<boolean>(false);
 	useHotkeys("mod+Enter", () => setStart(true), [start]);
-	const { data: template } = trpc.templates.get.useQuery(
+	const { data: chat } = trpc.chats.get.useQuery(
 		{
-			id: templateId as string,
+			id: chatId as string,
 		},
-		{ enabled: !!templateId },
+		{ enabled: !!chatId },
+	);
+	const { mutateAsync: updateChat } = trpc.chats.update.useMutation({
+		onSuccess: () => utils.chats.get.invalidate({ id: chatId }),
+	});
+	const { mutateAsync: addNewMessage } = trpc.chats.addNewMessage.useMutation(
+		{ onSuccess: () => utils.chats.get.invalidate({ id: chatId }) },
 	);
 
-	const { mutateAsync: createChat } = trpc.chats.create.useMutation();
+	useEffect(() => {
+		if (!chat) return;
+		setMessages(chat.messages ?? []);
+	}, [chat?.modifiedAt]);
 
 	trpc.llm.submit.useSubscription(
 		{
-			templateId: templateId as string,
-			versionId: versionId as string,
 			messages,
-			fileIds: template?.fileIds ?? [],
-			collectionId: template?.collectionId!,
-			workspaceId: template?.workspaceId!,
+			fileIds: chat?.fileIds ?? [],
+			collectionId: chat?.collectionId!,
+			workspaceId: chat?.workspaceId!,
 		},
 		{
 			enabled: start,
@@ -45,12 +59,13 @@ export const MainArea = () => {
 				setStart(false);
 			},
 			onError() {
-				setTyping("");
 				setStart(false);
-				setMessages((prev) => [
-					...prev,
-					{ prompt: typing, role: "assistant" },
-				]);
+				addNewMessage({
+					id: chat?._id!,
+					role: "assistant",
+					prompt: typing,
+				});
+				setTyping("");
 			},
 			onData: (data) => {
 				setTyping((prev) => prev + data);
@@ -61,62 +76,48 @@ export const MainArea = () => {
 	const onSubmitMessage = useCallback(
 		async (role: string, message: string) => {
 			if (message) {
-				const msg = { prompt: message, role };
+				const msg = {
+					_id: nanoid(),
+					prompt: message,
+					role,
+					inputVariables: [],
+				};
+				await addNewMessage({
+					id: chat?._id!,
+					// @ts-ignore
+					role,
+					prompt: msg.prompt,
+				});
 				setMessages((prev) => [...prev, msg]);
 			}
 			setStart(true);
 		},
-		[],
+		[chat?.modifiedAt],
 	);
 
-	const onCreateChat = useCallback(async () => {
-		if (!template) return;
+	const onRemoveMessage = useCallback(
+		async (index: number) => {
+			return await updateChat({
+				...chat,
+				// @ts-ignore
+				messages: messages.filter((_, i) => i < index),
+			});
+		},
+		[chat?.modifiedAt, messages],
+	);
 
-		const version = template.versions.find((v) => v._id === versionId);
-		if (!version) return;
-
-		const chat = await createChat({
-			collectionId: template.collectionId,
-			workspaceId: template.workspaceId,
-			messages: [
-				...version.messages,
-				...messages.map((m) => {
-					return {
-						_id: nanoid(),
-						role: m.role!,
-						prompt: m.prompt,
-						inputVariables: [],
-					};
-				}),
-			],
-			fileIds: template?.fileIds ?? [],
-			_id: nanoid(),
-			type: "Chat",
-			modifiedAt: Date.now(),
-			createdAt: Date.now(),
-			name: `Chat ${template.name}`,
-			settings: template.settings,
-		});
-
-		navigate(
-			`/workspaces/${chat.workspaceId}/dashboard/${chat.collectionId}/chats/${chat._id}`,
-		);
-	}, [template, versionId, messages]);
-
-	const onRemoveMessage = useCallback((index: number) => {
-		setMessages((prev) => prev.filter((_, i) => i < index));
-	}, []);
-
-	const onRefreshMessage = useCallback((index: number) => {
-		onRemoveMessage(index);
-		setStart(true);
-	}, []);
+	const onRefreshMessage = useCallback(
+		async (index: number) => {
+			await onRemoveMessage(index);
+			setStart(true);
+		},
+		[chat?.modifiedAt, messages],
+	);
 
 	return (
 		<div className="border-r border-white/10 w-full h-screen">
 			<div className="flex flex-col relative h-screen">
 				<div className="w-full relative overflow-y-auto overflow-x-hidden mb-[164px]">
-					<TemplateViewer />
 					{messages.map((msg, i) => (
 						<TemplateMessage
 							onRemove={() => onRemoveMessage(i)}
@@ -138,10 +139,7 @@ export const MainArea = () => {
 					)}
 				</div>
 				<div className="flex absolute w-full bottom-[67px] z-10">
-					<SubmitTemplateMessage
-						onSubmit={onSubmitMessage}
-						onCreateChat={onCreateChat}
-					/>
+					<SubmitTemplateMessage onSubmit={onSubmitMessage} />
 				</div>
 			</div>
 		</div>

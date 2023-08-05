@@ -6,6 +6,7 @@ import {
 	Routes,
 	useParams,
 } from "react-router-dom";
+import { ChatPage } from "./pages/chat";
 import { DashboardPage } from "./pages/dashboard";
 import { GridPage } from "./pages/grid";
 import { PlaygroundPage } from "./pages/playground";
@@ -37,6 +38,10 @@ export const Router: FC = () => {
 					<Route
 						path="workspaces/:workspaceId/dashboard/:collectionId/templates/:templateId/:versionId?/:chatId?"
 						element={<PlaygroundPage />}
+					/>
+					<Route
+						path="workspaces/:workspaceId/dashboard/:collectionId/chats/:chatId"
+						element={<ChatPage />}
 					/>
 				</Route>
 			</Routes>

@@ -52,6 +52,7 @@ export const DashboardPage = () => {
 	const { mutateAsync: clonePrompt } = trpc.templates.clone.useMutation();
 	const { mutateAsync: deleteFile } = trpc.files.delete.useMutation();
 	const { mutateAsync: deleteGrid } = trpc.grids.delete.useMutation();
+	const { mutateAsync: deleteChat } = trpc.chats.delete.useMutation();
 	const { mutateAsync: deleteCollection } =
 		trpc.collections.delete.useMutation();
 
@@ -61,6 +62,7 @@ export const DashboardPage = () => {
 				if (type === "Template") await deletePrompt({ id });
 				if (type === "Grid") await deleteGrid({ id });
 				if (type === "File") await deleteFile({ id });
+				if (type === "Chat") await deleteChat({ id });
 			}
 
 			if (action === "clone") {
@@ -69,6 +71,7 @@ export const DashboardPage = () => {
 			utils.templates.all.invalidate();
 			utils.grids.all.invalidate();
 			utils.files.all.invalidate();
+			utils.chats.all.invalidate();
 		},
 		[clonePrompt, deletePrompt, utils],
 	);
@@ -212,7 +215,7 @@ export const DashboardPage = () => {
 											entity={{ type: "Chat" }}
 											className="mr-2 "
 										/>{" "}
-										Chats (Coming soon)
+										Chats
 									</span>
 								</NavLink>
 								<NavLink
