@@ -4,34 +4,47 @@ import { LLMDropdown } from "../Shared/LLMDowndown";
 
 type TLLMParametersProps = {
 	temperature: number;
+	delimiter?: string;
 	modelName: string;
-	onChange: (key: string, value: any) => void;
-}
+	onChange: (key: string, value: string | number) => void;
+};
 
-export const LLMParameters = ({temperature, onChange, modelName}: TLLMParametersProps) => {
+export const LLMParameters = ({
+	temperature,
+	onChange,
+	delimiter,
+	modelName,
+}: TLLMParametersProps) => {
 	const onModelChange = useCallback(async (modelName: string) => {
-		onChange('modelName', modelName);
+		onChange("modelName", modelName);
 	}, []);
 
 	const onTemperatureChange = useCallback(async (temperature: number) => {
-		onChange('temperature', temperature);
+		onChange("temperature", temperature);
+	}, []);
+
+	const onDelimiterChange = useCallback(async (delimiter: string) => {
+		onChange("delimiter", delimiter);
 	}, []);
 
 	return (
 		<div className="flex flex-wrap gap-3 mt-2 px-6 pb-4">
 			<LLMDropdown label={modelName} onChange={onModelChange} />
-			<LLMTemperature temperature={temperature} onChange={onTemperatureChange} />
+			<LLMTemperature
+				temperature={temperature}
+				onChange={onTemperatureChange}
+			/>
+			<LLMDelimiter delimiter={delimiter} onChange={onDelimiterChange} />
 		</div>
 	);
 };
-
 
 type TLLMTemperatureProps = {
 	temperature: number;
 	onChange?: (val: number) => void;
 };
 
-const LLMTemperature = ({temperature, onChange}: TLLMTemperatureProps) => {
+const LLMTemperature = ({ temperature, onChange }: TLLMTemperatureProps) => {
 	const [val, setVal] = useState(temperature);
 	if (temperature === undefined) return null;
 
@@ -63,6 +76,33 @@ const LLMTemperature = ({temperature, onChange}: TLLMTemperatureProps) => {
 						aria-label="Volume"
 					/>
 				</Slider.Root>
+			</div>
+		</div>
+	);
+};
+
+type TLLMDelimiterProps = {
+	delimiter?: string;
+	onChange: (val: string) => void;
+};
+
+const LLMDelimiter = ({ delimiter, onChange }: TLLMDelimiterProps) => {
+	return (
+		<div className="w-full">
+			<div className="grid grid-cols-[auto,1fr] items-center gap-2">
+				<label
+					className="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white text-xs"
+					htmlFor=""
+				>
+					Delimiter =
+				</label>
+				<input
+					type="text"
+					defaultValue={delimiter}
+					onChange={(e) => onChange(e.target.value)}
+					className="block h-9 w-full  border-0 border-b p-2 text-xs text-gray-900 placeholder:text-gray-400 focus:border-zinc-600 focus:ring-0 dark:border-white/10 dark:bg-transparent dark:text-white dark:focus:border-zinc-600 dark:focus:outline-0 sm:leading-5"
+					placeholder="Enter a value.."
+				/>
 			</div>
 		</div>
 	);

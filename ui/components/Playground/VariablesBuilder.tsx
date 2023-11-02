@@ -92,6 +92,7 @@ export const VariablesBuilder = ({
 								onChange={onLLMChange}
 								modelName={entity.settings.modelName}
 								temperature={entity.settings.temperature}
+								delimiter={entity.settings.delimiter}
 							/>
 						)}
 					</Accordion.AccordionContent>

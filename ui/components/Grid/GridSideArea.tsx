@@ -337,6 +337,9 @@ export const GridSideArea = () => {
 														temperature={
 															set.llm.temperature
 														}
+														delimiter={
+															set.llm.delimiter
+														}
 														modelName={
 															set.llm.modelName
 														}

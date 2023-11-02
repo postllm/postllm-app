@@ -34,6 +34,7 @@ const submitSchema = z.object({
 
 const completionSchema = z.object({
 	temperature: z.number(),
+	delimiter: z.string().optional(),
 	modelName: z.string(),
 	streaming: z.boolean().default(false),
 	text: z.array(z.string()),
@@ -82,6 +83,7 @@ export const llmRouter = router({
 				temperature: input.temperature,
 				streaming: input.streaming,
 				openAIApiKey: configuration?.apiKeys?.openAIKey,
+				stop: input.delimiter ? [input.delimiter] : undefined,
 			});
 
 			const chain = new LLMChain({
@@ -146,6 +148,8 @@ export const llmRouter = router({
 					input.llm?.modelName ?? template?.settings.modelName;
 				const temperature =
 					input.llm?.temperature ?? template?.settings.temperature;
+				const delimiter =
+					input.llm?.delimiter ?? template?.settings.delimiter;
 
 				const embeddings = new OpenAIEmbeddings({
 					openAIApiKey: configuration?.apiKeys?.openAIKey,
@@ -155,6 +159,7 @@ export const llmRouter = router({
 					temperature,
 					streaming: true,
 					openAIApiKey: configuration?.apiKeys?.openAIKey,
+					stop: delimiter ? [delimiter] : undefined,
 				});
 
 				const chain = new LLMChain({
