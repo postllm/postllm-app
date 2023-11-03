@@ -89,7 +89,8 @@ export const FilesDropdown = ({
 								id="file-upload"
 								className="hidden"
 								type="file"
-								accept="application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+								// accept pdf,txt and md file support
+								accept="application/pdf, text/plain, text/markdown, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 								aria-label="Pick a file from your computer"
 								onChange={onAddNewFile}
 							/>
